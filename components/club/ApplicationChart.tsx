@@ -25,7 +25,7 @@ export default function ApplicationChart({ data, selectedDay, onDayClick }: Prop
         <YAxis hide />
         <Tooltip
           contentStyle={{ fontSize: 12, borderRadius: 8, border: 'none', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}
-          formatter={(v: unknown) => [`${v} 人`, '申请数'] as [string, string]}
+          formatter={(value: unknown) => [`${value} 人`, '申请数'] as [string, string]}
         />
         <Line
           type="monotone"
