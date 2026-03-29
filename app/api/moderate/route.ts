@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import Anthropic from '@anthropic-ai/sdk';
 
 export async function POST(request: NextRequest) {
   try {
@@ -24,9 +25,7 @@ export async function POST(request: NextRequest) {
     const apiKey = process.env.ANTHROPIC_API_KEY;
     if (apiKey) {
       try {
-        // eslint-disable-next-line @typescript-eslint/no-require-imports
-        const Anthropic = require('@anthropic-ai/sdk');
-        const client = new Anthropic.default({ apiKey });
+        const client = new Anthropic({ apiKey });
         const message = await client.messages.create({
           model: 'claude-haiku-4-5-20251001',
           max_tokens: 150,
