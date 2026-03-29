@@ -13,13 +13,13 @@ const ReadingChart = dynamic(() => import('@/components/club/ReadingChart'), { s
 const club = mockClubs[0];
 
 const applyData = [
-  { day: '周一', count: 3 },
-  { day: '周二', count: 5 },
+  { day: '周一', count: 2 },
+  { day: '周二', count: 2 },
   { day: '周三', count: 2 },
-  { day: '周四', count: 8 },
-  { day: '周五', count: 6 },
-  { day: '周六', count: 11 },
-  { day: '周日', count: 7 },
+  { day: '周四', count: 3 },
+  { day: '周五', count: 2 },
+  { day: '周六', count: 3 },
+  { day: '周日', count: 2 },
 ];
 
 
