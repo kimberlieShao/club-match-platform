@@ -7,14 +7,7 @@ import { mockClubs } from '@/lib/mockData';
 import { matchClubs } from '@/lib/matchEngine';
 import { MatchResult, QuizAnswers } from '@/lib/types';
 import Navbar from '@/components/shared/Navbar';
-
-const categoryColors: Record<string, string> = {
-  文艺: 'bg-pink-100 text-pink-700',
-  科技: 'bg-blue-100 text-blue-700',
-  体育: 'bg-green-100 text-green-700',
-  学术: 'bg-yellow-100 text-yellow-700',
-  公益: 'bg-orange-100 text-orange-700',
-};
+import { useLanguage } from '@/lib/i18n';
 
 const categoryColorStyle: Record<string, { background: string; color: string }> = {
   文艺: { background: '#FCE7F3', color: '#BE185D' },
@@ -24,9 +17,32 @@ const categoryColorStyle: Record<string, { background: string; color: string }> 
   公益: { background: '#FFEDD5', color: '#9A3412' },
 };
 
+const text = {
+  zh: {
+    title: '为你推荐的社团',
+    subtitle: '根据你的个性和喜好，AI 为你精选以下社团',
+    bestMatch: '最适合你',
+    matchLabel: '匹配度',
+    noResult: '没找到心仪的社团？',
+    browseAll: '浏览全部社团 →',
+    createClub: '申请创建社团 →',
+  },
+  en: {
+    title: 'Your Matches',
+    subtitle: "Based on your quiz, here are the orgs we think you'll love",
+    bestMatch: 'Best Match',
+    matchLabel: 'Match',
+    noResult: 'Not seeing the right fit?',
+    browseAll: 'Browse all orgs →',
+    createClub: 'Start a new club →',
+  },
+};
+
 export default function RecommendationsPage() {
   const [results, setResults] = useState<MatchResult[]>([]);
   const router = useRouter();
+  const { language } = useLanguage();
+  const t = language === 'en' ? text.en : text.zh;
 
   useEffect(() => {
     const stored = localStorage.getItem('quizAnswers');
@@ -38,10 +54,10 @@ export default function RecommendationsPage() {
 
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#F8F7FF' }}>
-      <Navbar title="为你推荐的社团" />
+      <Navbar title={t.title} />
       <main style={{ padding: '16px 16px 40px' }}>
         <p style={{ fontSize: 14, color: '#6B5FA6', marginBottom: 20 }}>
-          根据你的个性和喜好，AI 为你精选以下社团
+          {t.subtitle}
         </p>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
@@ -75,7 +91,7 @@ export default function RecommendationsPage() {
                         letterSpacing: 0.5,
                       }}
                     >
-                      🏆 最适合你
+                      🏆 {t.bestMatch}
                     </div>
                   )}
 
@@ -102,7 +118,7 @@ export default function RecommendationsPage() {
                         {result.score}
                         <span style={{ fontSize: 14, fontWeight: 500, color: '#9B8EC4' }}>%</span>
                       </div>
-                      <div style={{ fontSize: 11, color: '#9B8EC4', marginTop: 2 }}>匹配度</div>
+                      <div style={{ fontSize: 11, color: '#9B8EC4', marginTop: 2 }}>{t.matchLabel}</div>
                     </div>
                   </div>
 
@@ -156,7 +172,7 @@ export default function RecommendationsPage() {
           }}
         >
           <p style={{ fontSize: 15, fontWeight: 600, color: '#3C3489', marginBottom: 12 }}>
-            没找到心仪的社团？
+            {t.noResult}
           </p>
           <div style={{ display: 'flex', gap: 10, justifyContent: 'center' }}>
             <button
@@ -167,7 +183,7 @@ export default function RecommendationsPage() {
                 border: '1.5px solid #534AB7', cursor: 'pointer',
               }}
             >
-              浏览全部社团 →
+              {t.browseAll}
             </button>
             <button
               onClick={() => router.push('/student/create-club')}
@@ -177,7 +193,7 @@ export default function RecommendationsPage() {
                 border: 'none', cursor: 'pointer',
               }}
             >
-              申请创建社团 →
+              {t.createClub}
             </button>
           </div>
         </div>

@@ -6,27 +6,78 @@ import { notFound, useRouter } from 'next/navigation';
 import Navbar from '@/components/shared/Navbar';
 import { ReviewRatings } from '@/lib/types';
 import { containsBadWords } from '@/lib/badWords';
+import { useLanguage } from '@/lib/i18n';
 
-const RATING_LABELS: { key: keyof ReviewRatings; label: string; bg: string; color: string }[] = [
-  { key: 'atmosphere',    label: '整体氛围', bg: '#FFD6E0', color: '#C2506A' },
-  { key: 'timeValue',     label: '时间合理', bg: '#D6F5E3', color: '#3A8A5A' },
-  { key: 'activity',      label: '活动质量', bg: '#FFF3CD', color: '#A07820' },
-  { key: 'management',    label: '管理水平', bg: '#D6EEFF', color: '#3A6EA8' },
-  { key: 'newbieFriendly',label: '新手友好', bg: '#EDE0FF', color: '#7040B0' },
-];
-
-const SOCIAL_LABELS: Record<string, string> = {
-  wechat: '公众号',
-  xiaohongshu: '小红书',
-  douyin: '抖音',
-  weibo: '微博',
+const applyText = {
+  zh: {
+    title: '申请加入',
+    autoFill: '自动填入的信息',
+    mbti: 'MBTI', constellation: '星座',
+    reason: '申请理由', reasonPlaceholder: '说说你为什么想加入这个社团...',
+    noResume: '未上传简历（可在个人资料页上传）',
+    submitBtn: '一键发送申请 →',
+  },
+  en: {
+    title: 'Apply to Join',
+    autoFill: 'Your info (auto-filled)',
+    mbti: 'MBTI', constellation: 'Zodiac Sign',
+    reason: 'Why do you want to join?',
+    reasonPlaceholder: "Tell us why you'd be a great fit...",
+    noResume: 'No resume uploaded (add one in your profile)',
+    submitBtn: 'Submit Application →',
+  },
 };
+
+const text = {
+  zh: {
+    members: '名成员', hoursPerWeek: '每周投入', rating: '综合评分',
+    president: '社长',
+    aboutUs: '关于我们', recentActivities: '近年活动',
+    reviews: '成员评价', writeReview: '写评价',
+    verifiedMember: '已验证成员', helpful: '有帮助',
+    followUs: '关注我们',
+    applyBtn: '申请加入 →', appliedBtn: '已申请，等待审核',
+    reviewDims: { vibe: '整体氛围', time: '时间合理', events: '活动质量', leadership: '管理水平', beginner: '新手友好' },
+    socialMedia: { wechat: '公众号', xiaohongshu: '小红书', douyin: '抖音', weibo: '微博' },
+  },
+  en: {
+    members: 'members', hoursPerWeek: 'hrs/week', rating: 'Rating',
+    president: 'President',
+    aboutUs: 'About Us', recentActivities: 'Recent Events',
+    reviews: 'Member Reviews', writeReview: 'Write a Review',
+    verifiedMember: 'Verified Member', helpful: 'Helpful',
+    followUs: 'Find Us Online',
+    applyBtn: 'Apply to Join →', appliedBtn: 'Applied — Pending Review',
+    reviewDims: { vibe: 'Vibe', time: 'Time Commitment', events: 'Events', leadership: 'Leadership', beginner: 'Beginner Friendly' },
+    socialMedia: { wechat: 'WeChat', xiaohongshu: 'Instagram', douyin: 'TikTok', weibo: 'Twitter' },
+  },
+};
+
+const RATING_BG_COLOR: { key: keyof ReviewRatings; dimKey: 'vibe' | 'time' | 'events' | 'leadership' | 'beginner'; bg: string; color: string }[] = [
+  { key: 'atmosphere',     dimKey: 'vibe',       bg: '#FFD6E0', color: '#C2506A' },
+  { key: 'timeValue',      dimKey: 'time',       bg: '#D6F5E3', color: '#3A8A5A' },
+  { key: 'activity',       dimKey: 'events',     bg: '#FFF3CD', color: '#A07820' },
+  { key: 'management',     dimKey: 'leadership', bg: '#D6EEFF', color: '#3A6EA8' },
+  { key: 'newbieFriendly', dimKey: 'beginner',   bg: '#EDE0FF', color: '#7040B0' },
+];
 
 export default function ClubDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const router = useRouter();
+  const { language } = useLanguage();
+  const t = language === 'en' ? text.en : text.zh;
+  const at = language === 'en' ? applyText.en : applyText.zh;
+
   const club = mockClubs.find((c) => c.id === id);
   if (!club) notFound();
+
+  // RATING_LABELS with localized text
+  const RATING_LABELS = RATING_BG_COLOR.map(({ key, dimKey, bg, color }) => ({
+    key,
+    label: t.reviewDims[dimKey],
+    bg,
+    color,
+  }));
 
   // Review state
   const [reviews, setReviews] = useState(club.reviews);
@@ -187,7 +238,9 @@ export default function ClubDetailPage({ params }: { params: Promise<{ id: strin
         {/* Hero Banner */}
         <div className="bg-[#534AB7] px-4 pt-6 pb-12">
           <h1 className="text-3xl font-bold text-white">{club.name}</h1>
-          <p className="text-purple-200 text-sm mt-1">{club.category} · {club.memberCount}名成员</p>
+          <p className="text-purple-200 text-sm mt-1">
+            {club.category} · {club.memberCount}{language === 'en' ? ` ${t.members}` : t.members}
+          </p>
           <div className="flex items-center gap-1 mt-2">
             <span className="text-yellow-300">★</span>
             <span className="text-white font-semibold">{club.rating}</span>
@@ -200,9 +253,9 @@ export default function ClubDetailPage({ params }: { params: Promise<{ id: strin
           <div className="bg-white rounded-2xl p-4 shadow-md mb-4">
             <div className="grid grid-cols-3 gap-2 mb-3">
               {[
-                { label: '成员人数', value: `${club.memberCount}人` },
-                { label: '每周投入', value: `${club.weeklyHours}h` },
-                { label: '综合评分', value: club.rating },
+                { label: t.members,      value: language === 'en' ? club.memberCount : `${club.memberCount}人` },
+                { label: t.hoursPerWeek, value: `${club.weeklyHours}h` },
+                { label: t.rating,       value: club.rating },
               ].map((stat) => (
                 <div key={stat.label} className="text-center">
                   <p className="text-[#534AB7] font-bold text-xl">{stat.value}</p>
@@ -212,7 +265,7 @@ export default function ClubDetailPage({ params }: { params: Promise<{ id: strin
             </div>
             {club.president && (
               <div className="border-t border-[#F0EEFF] pt-2.5 flex items-center gap-2">
-                <span className="text-xs text-[#9B8EC4]">社长</span>
+                <span className="text-xs text-[#9B8EC4]">{t.president}</span>
                 <span className="text-xs font-medium text-[#1A1240]">{club.president}</span>
                 {club.presidentContact && (
                   <span className="text-xs text-[#9B8EC4] ml-1">{club.presidentContact}</span>
@@ -223,7 +276,7 @@ export default function ClubDetailPage({ params }: { params: Promise<{ id: strin
 
           {/* Description */}
           <div className="bg-white rounded-2xl p-5 shadow-sm mb-4">
-            <h2 className="font-semibold text-[#1A1240] mb-2">关于我们</h2>
+            <h2 className="font-semibold text-[#1A1240] mb-2">{t.aboutUs}</h2>
             <p className="text-[#4A4A6A] text-sm leading-relaxed">{club.description}</p>
             <div className="flex flex-wrap gap-1.5 mt-3">
               {club.tags.map((tag) => (
@@ -234,7 +287,7 @@ export default function ClubDetailPage({ params }: { params: Promise<{ id: strin
 
           {/* Activities */}
           <div className="bg-white rounded-2xl p-5 shadow-sm mb-4">
-            <h2 className="font-semibold text-[#1A1240] mb-3">近年活动</h2>
+            <h2 className="font-semibold text-[#1A1240] mb-3">{t.recentActivities}</h2>
             <div className="flex flex-col gap-3">
               {club.activities.map((act) => (
                 <div key={act.id} className="flex gap-3">
@@ -252,12 +305,12 @@ export default function ClubDetailPage({ params }: { params: Promise<{ id: strin
           {/* Reviews */}
           <div className="bg-white rounded-2xl p-5 shadow-sm mb-4">
             <div className="flex items-center justify-between mb-3">
-              <h2 className="font-semibold text-[#1A1240]">成员评价</h2>
+              <h2 className="font-semibold text-[#1A1240]">{t.reviews}</h2>
               <button
                 onClick={() => { setShowAuthModal(true); setAuthStep(1); setConfirmed(false); setStudentId(''); }}
                 className="text-xs bg-[#534AB7] text-white px-3 py-1.5 rounded-full"
               >
-                ✏️ 写评价
+                ✏️ {t.writeReview}
               </button>
             </div>
             <div className="flex flex-col gap-5">
@@ -267,7 +320,7 @@ export default function ClubDetailPage({ params }: { params: Promise<{ id: strin
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center gap-2">
                       {review.verified && (
-                        <span className="text-xs bg-green-50 text-green-700 border border-green-200 px-2 py-0.5 rounded-full">已验证成员</span>
+                        <span className="text-xs bg-green-50 text-green-700 border border-green-200 px-2 py-0.5 rounded-full">{t.verifiedMember}</span>
                       )}
                       {review.enrollYear && (
                         <span className="text-xs text-[#9B8EC4]">{review.enrollYear}届成员</span>
@@ -300,7 +353,7 @@ export default function ClubDetailPage({ params }: { params: Promise<{ id: strin
                         likedIds.has(review.id) ? 'bg-[#EDE9FF] text-[#534AB7]' : 'text-[#9B8EC4] hover:bg-[#F5F3FF]'
                       }`}
                     >
-                      👍 有帮助 {(review.likes ?? 0) + (likedIds.has(review.id) ? 1 : 0)}
+                      👍 {t.helpful} {(review.likes ?? 0) + (likedIds.has(review.id) ? 1 : 0)}
                     </button>
                   </div>
                 </div>
@@ -311,7 +364,7 @@ export default function ClubDetailPage({ params }: { params: Promise<{ id: strin
           {/* Social Media */}
           {club.socialMedia && Object.keys(club.socialMedia).length > 0 && (
             <div className="bg-white rounded-2xl p-5 shadow-sm mb-4">
-              <h2 className="font-semibold text-[#1A1240] mb-3">关注我们</h2>
+              <h2 className="font-semibold text-[#1A1240] mb-3">{t.followUs}</h2>
               <div className="flex flex-wrap gap-2">
                 {Object.entries(club.socialMedia).map(([platform, link]) => (
                   link ? (
@@ -322,7 +375,7 @@ export default function ClubDetailPage({ params }: { params: Promise<{ id: strin
                       rel="noopener noreferrer"
                       className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-[#EDE9FF] text-[#534AB7] text-sm font-medium hover:bg-[#D4CEFF] transition-colors"
                     >
-                      <span>{SOCIAL_LABELS[platform] ?? platform}</span>
+                      <span>{t.socialMedia[platform as keyof typeof t.socialMedia] ?? platform}</span>
                     </a>
                   ) : null
                 ))}
@@ -340,7 +393,7 @@ export default function ClubDetailPage({ params }: { params: Promise<{ id: strin
                 disabled
                 className="w-full py-4 bg-[#E5E0F5] text-[#9B8EC4] font-semibold rounded-2xl cursor-not-allowed"
               >
-                已申请，等待审核
+                {t.appliedBtn}
               </button>
             </div>
           ) : (
@@ -348,7 +401,7 @@ export default function ClubDetailPage({ params }: { params: Promise<{ id: strin
               onClick={() => { setShowApplyModal(true); setApplySuccess(false); }}
               className="w-full py-4 bg-[#534AB7] text-white font-semibold rounded-2xl shadow-lg"
             >
-              申请加入 →
+              {t.applyBtn}
             </button>
           )}
         </div>
@@ -459,13 +512,13 @@ export default function ClubDetailPage({ params }: { params: Promise<{ id: strin
             ) : (
               <>
                 <div className="flex items-center justify-between mb-5">
-                  <h3 className="font-bold text-[#1A1240] text-lg">申请加入 · {club.name}</h3>
+                  <h3 className="font-bold text-[#1A1240] text-lg">{at.title} · {club.name}</h3>
                   <button onClick={() => setShowApplyModal(false)} className="text-[#9B8EC4] text-2xl leading-none">×</button>
                 </div>
 
                 {/* Pre-filled info */}
                 <div className="bg-[#F5F3FF] rounded-2xl p-4 mb-5">
-                  <p className="text-xs text-[#9B8EC4] font-semibold mb-3 uppercase tracking-wide">自动填入的信息</p>
+                  <p className="text-xs text-[#9B8EC4] font-semibold mb-3 uppercase tracking-wide">{at.autoFill}</p>
                   <div className="grid grid-cols-2 gap-y-2 text-sm">
                     <span className="text-[#9B8EC4]">姓名</span>
                     <span className="text-[#1A1240] font-medium">{storedProfile.name || '—'}</span>
@@ -481,7 +534,7 @@ export default function ClubDetailPage({ params }: { params: Promise<{ id: strin
                 {/* MBTI + Zodiac */}
                 <div className="flex gap-3 mb-5">
                   <div className="flex-1">
-                    <label className="block text-xs font-semibold text-[#9B8EC4] mb-1.5">MBTI</label>
+                    <label className="block text-xs font-semibold text-[#9B8EC4] mb-1.5">{at.mbti}</label>
                     <select
                       value={applyMbti}
                       onChange={(e) => setApplyMbti(e.target.value)}
@@ -492,7 +545,7 @@ export default function ClubDetailPage({ params }: { params: Promise<{ id: strin
                     </select>
                   </div>
                   <div className="flex-1">
-                    <label className="block text-xs font-semibold text-[#9B8EC4] mb-1.5">星座</label>
+                    <label className="block text-xs font-semibold text-[#9B8EC4] mb-1.5">{at.constellation}</label>
                     <select
                       value={applyZodiac}
                       onChange={(e) => setApplyZodiac(e.target.value)}
@@ -507,7 +560,7 @@ export default function ClubDetailPage({ params }: { params: Promise<{ id: strin
                 {/* Reason */}
                 <div className="mb-5">
                   <div className="flex items-center justify-between mb-1.5">
-                    <label className="text-sm font-semibold text-[#1A1240]">申请理由</label>
+                    <label className="text-sm font-semibold text-[#1A1240]">{at.reason}</label>
                     <button
                       onClick={handleApplyCopilot}
                       disabled={applyCopilotLoading}
@@ -520,7 +573,7 @@ export default function ClubDetailPage({ params }: { params: Promise<{ id: strin
                     rows={4}
                     value={applyReason}
                     onChange={(e) => setApplyReason(e.target.value)}
-                    placeholder="说说你为什么想加入这个社团…"
+                    placeholder={at.reasonPlaceholder}
                     className="w-full border border-[#E5DEFF] rounded-xl px-4 py-3 text-sm text-[#1A1240] focus:outline-none focus:border-[#534AB7] resize-none"
                   />
                 </div>
@@ -531,7 +584,7 @@ export default function ClubDetailPage({ params }: { params: Promise<{ id: strin
                   <div className="flex-1 text-sm">
                     {storedProfile.resumeFileName
                       ? <><p className="font-medium text-[#1A1240]">{storedProfile.resumeFileName}</p><p className="text-[#9B8EC4] text-xs">已上传的简历</p></>
-                      : <p className="text-[#9B8EC4]">未上传简历（可在个人资料页上传）</p>
+                      : <p className="text-[#9B8EC4]">{at.noResume}</p>
                     }
                   </div>
                 </div>
@@ -541,7 +594,7 @@ export default function ClubDetailPage({ params }: { params: Promise<{ id: strin
                   disabled={applyLoading}
                   className="w-full py-4 bg-[#534AB7] text-white font-bold rounded-2xl text-base disabled:opacity-50"
                 >
-                  {applyLoading ? '发送中…' : '一键发送申请 →'}
+                  {applyLoading ? '发送中…' : at.submitBtn}
                 </button>
               </>
             )}
@@ -562,7 +615,7 @@ export default function ClubDetailPage({ params }: { params: Promise<{ id: strin
             ) : (
               <>
                 <div className="flex items-center justify-between mb-5">
-                  <h3 className="font-bold text-[#1A1240] text-lg">写评价</h3>
+                  <h3 className="font-bold text-[#1A1240] text-lg">{t.writeReview}</h3>
                   <button onClick={() => setShowReviewModal(false)} className="text-[#9B8EC4] text-xl">×</button>
                 </div>
 

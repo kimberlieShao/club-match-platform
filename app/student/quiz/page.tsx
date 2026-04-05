@@ -4,6 +4,7 @@ import { useState, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import Navbar from '@/components/shared/Navbar';
 import { QuizAnswers } from '@/lib/types';
+import { useLanguage } from '@/lib/i18n';
 
 // ─── Question data ────────────────────────────────────────────────────────────
 
@@ -20,134 +21,193 @@ interface Question {
   options: AnyOption[];
 }
 
-const QUESTIONS: Question[] = [
-  // Q1 (index 0)
+// Language-independent data (effects, scores, emoji, layout, dimension)
+const QUESTIONS_DATA = [
+  // Q1
   {
-    title: '周五晚上没有安排，你最可能在做什么？',
-    layout: 'vertical',
+    layout: 'vertical' as const,
     options: [
-      { emoji: '🎉', text: '已经在群里喊人出去了',       effect: { social: 3 } },
-      { emoji: '☕', text: '和固定的几个朋友约了饭',     effect: { social: 2 } },
-      { emoji: '🛋', text: '窝在家里，终于可以自己待着', effect: { social: 1 } },
-    ] as EffectOption[],
+      { emoji: '🎉', effect: { social: 3 } },
+      { emoji: '☕', effect: { social: 2 } },
+      { emoji: '🛋', effect: { social: 1 } },
+    ],
   },
-  // Q2 (index 1)
+  // Q2
   {
-    title: '朋友让你帮忙做一个活动，你最想负责哪块？',
-    layout: 'vertical',
+    layout: 'vertical' as const,
     options: [
-      { emoji: '💡', text: '策划和创意，我来想方案',   effect: { creative: 3, role: 'leader'   } },
-      { emoji: '🔧', text: '执行落地，我来把它做出来', effect: { hands_on: 3, role: 'executor' } },
-      { emoji: '🎤', text: '现场氛围，我来炒热气氛',   effect: { perform: 3,  role: 'member'   } },
-    ] as EffectOption[],
+      { emoji: '💡', effect: { creative: 3, role: 'leader'   } },
+      { emoji: '🔧', effect: { hands_on: 3, role: 'executor' } },
+      { emoji: '🎤', effect: { perform: 3,  role: 'member'   } },
+    ],
   },
-  // Q3 (index 2) — perform
+  // Q3 — perform
   {
-    title: '我们正在招募愿意站上舞台的你——表演、主持、演讲都欢迎',
-    layout: 'grid',
-    dimension: 'perform',
+    layout: 'grid' as const,
+    dimension: 'perform' as const,
     options: [
-      { emoji: '⚡', text: '好！这正是我想要的', score: 5 },
-      { emoji: '👀', text: '有点心动，可以了解', score: 4 },
-      { emoji: '🤷', text: '无所谓，都行',       score: 3 },
-      { emoji: '😐', text: '不太适合我',         score: 2 },
-      { emoji: '🙅', text: '完全不感兴趣',       score: 1 },
-    ] as ScoreOption[],
+      { emoji: '⚡', score: 5 },
+      { emoji: '👀', score: 4 },
+      { emoji: '🤷', score: 3 },
+      { emoji: '😐', score: 2 },
+      { emoji: '🙅', score: 1 },
+    ],
   },
-  // Q4 (index 3) — sport
+  // Q4 — sport
   {
-    title: '我们每周训练，一起备战校际联赛，要的就是那股拼劲',
-    layout: 'grid',
-    dimension: 'sport',
+    layout: 'grid' as const,
+    dimension: 'sport' as const,
     options: [
-      { emoji: '⚡', text: '好！这正是我想要的', score: 5 },
-      { emoji: '👀', text: '有点心动，可以了解', score: 4 },
-      { emoji: '🤷', text: '无所谓，都行',       score: 3 },
-      { emoji: '😐', text: '不太适合我',         score: 2 },
-      { emoji: '🙅', text: '完全不感兴趣',       score: 1 },
-    ] as ScoreOption[],
+      { emoji: '⚡', score: 5 },
+      { emoji: '👀', score: 4 },
+      { emoji: '🤷', score: 3 },
+      { emoji: '😐', score: 2 },
+      { emoji: '🙅', score: 1 },
+    ],
   },
-  // Q5 (index 4) — creative
+  // Q5 — creative
   {
-    title: '我们用镜头、画笔、代码创造东西，喜欢动手的你快来',
-    layout: 'grid',
-    dimension: 'creative',
+    layout: 'grid' as const,
+    dimension: 'creative' as const,
     options: [
-      { emoji: '⚡', text: '好！这正是我想要的', score: 5 },
-      { emoji: '👀', text: '有点心动，可以了解', score: 4 },
-      { emoji: '🤷', text: '无所谓，都行',       score: 3 },
-      { emoji: '😐', text: '不太适合我',         score: 2 },
-      { emoji: '🙅', text: '完全不感兴趣',       score: 1 },
-    ] as ScoreOption[],
+      { emoji: '⚡', score: 5 },
+      { emoji: '👀', score: 4 },
+      { emoji: '🤷', score: 3 },
+      { emoji: '😐', score: 2 },
+      { emoji: '🙅', score: 1 },
+    ],
   },
-  // Q6 (index 5) — academic
+  // Q6 — academic
   {
-    title: '我们每周读论文、做研究、办讲座，追求深度思考',
-    layout: 'grid',
-    dimension: 'academic',
+    layout: 'grid' as const,
+    dimension: 'academic' as const,
     options: [
-      { emoji: '⚡', text: '好！这正是我想要的', score: 5 },
-      { emoji: '👀', text: '有点心动，可以了解', score: 4 },
-      { emoji: '🤷', text: '无所谓，都行',       score: 3 },
-      { emoji: '😐', text: '不太适合我',         score: 2 },
-      { emoji: '🙅', text: '完全不感兴趣',       score: 1 },
-    ] as ScoreOption[],
+      { emoji: '⚡', score: 5 },
+      { emoji: '👀', score: 4 },
+      { emoji: '🤷', score: 3 },
+      { emoji: '😐', score: 2 },
+      { emoji: '🙅', score: 1 },
+    ],
   },
-  // Q7 (index 6)
+  // Q7
   {
-    title: '你理想的社团活动节奏是？',
-    layout: 'vertical',
+    layout: 'vertical' as const,
     options: [
-      { emoji: '📅', text: '固定时间，雷打不动每周见',   effect: { schedule: 'regular'  } },
-      { emoji: '🌊', text: '有活动才聚，平时自由',       effect: { schedule: 'flexible' } },
-      { emoji: '🍃', text: '随缘，不想有太多固定安排',   effect: { schedule: 'casual'   } },
-    ] as EffectOption[],
+      { emoji: '📅', effect: { schedule: 'regular'  } },
+      { emoji: '🌊', effect: { schedule: 'flexible' } },
+      { emoji: '🍃', effect: { schedule: 'casual'   } },
+    ],
   },
-  // Q8 (index 7)
+  // Q8
   {
-    title: '每周你愿意为社团投入多少时间？',
-    layout: 'vertical',
+    layout: 'vertical' as const,
     options: [
-      { emoji: '🌱', text: '1-2小时，轻松参与就好',       effect: { hours: 1 } },
-      { emoji: '⚖️', text: '3-5小时，认真但不影响学习', effect: { hours: 3 } },
-      { emoji: '🔥', text: '5小时以上，我想全力投入',     effect: { hours: 5 } },
-    ] as EffectOption[],
+      { emoji: '🌱', effect: { hours: 1 } },
+      { emoji: '⚖️', effect: { hours: 3 } },
+      { emoji: '🔥', effect: { hours: 5 } },
+    ],
   },
-  // Q9 (index 8)
+  // Q9
   {
-    title: '在社团里你最想成为？',
-    layout: 'vertical',
+    layout: 'vertical' as const,
     options: [
-      { emoji: '👑', text: '带头的人，我喜欢负责和决策', effect: { role: 'leader'   } },
-      { emoji: '💪', text: '核心骨干，把事情做到最好',   effect: { role: 'executor' } },
-      { emoji: '🌸', text: '自在参与，不想有太多压力',   effect: { role: 'member'   } },
-    ] as EffectOption[],
+      { emoji: '👑', effect: { role: 'leader'   } },
+      { emoji: '💪', effect: { role: 'executor' } },
+      { emoji: '🌸', effect: { role: 'member'   } },
+    ],
   },
-  // Q10 (index 9)
+  // Q10
   {
-    title: '你的理想社团，朋友圈发的是什么？',
-    layout: 'vertical',
+    layout: 'vertical' as const,
     options: [
-      { emoji: '🎭', text: '演出谢幕后和全体成员的大合照',   effect: { vibe: 'energetic',    perform:  1 } },
-      { emoji: '🎨', text: '凌晨还在改的设计稿或拍摄素材',   effect: { vibe: 'professional', creative: 1 } },
-      { emoji: '🏃', text: '训练完汗流浃背的自拍',           effect: { vibe: 'energetic',    sport:    1 } },
-      { emoji: '📚', text: '图书馆一起备赛堆满资料的书桌',   effect: { vibe: 'professional', academic: 1 } },
-      { emoji: '🫶', text: '社团小聚，随手拍的温馨日常',     effect: { vibe: 'warm',         social:   1 } },
-    ] as EffectOption[],
+      { emoji: '🎭', effect: { vibe: 'energetic',    perform:  1 } },
+      { emoji: '🎨', effect: { vibe: 'professional', creative: 1 } },
+      { emoji: '🏃', effect: { vibe: 'energetic',    sport:    1 } },
+      { emoji: '📚', effect: { vibe: 'professional', academic: 1 } },
+      { emoji: '🫶', effect: { vibe: 'warm',         social:   1 } },
+    ],
   },
 ];
 
+// ─── Bilingual text ───────────────────────────────────────────────────────────
+
+const SCORE_OPTIONS_ZH = ['好！这正是我想要的', '有点心动，可以了解', '无所谓，都行', '不太适合我', '完全不感兴趣'];
+const SCORE_OPTIONS_EN = ["Yes! That's exactly what I'm looking for", "Intrigued — I'd like to know more", 'Either way works for me', 'Not really my thing', 'Not interested at all'];
+
+const TEXT = {
+  zh: {
+    navTitle: '了解你自己',
+    groupCounter: (cur: number, total: number) => `第 ${cur} 组 / 共 ${total} 组`,
+    btnContinue: '继续 →',
+    btnIncomplete: '请完成本组所有题目',
+    generating: '正在生成你的专属推荐…',
+    groups: [
+      { title: '先聊聊你这个人',   subtitle: null },
+      { title: '哪些事会让你心动', subtitle: '看到这条招募信息，你的第一反应是？' },
+      { title: '聊聊你的节奏',     subtitle: null },
+      { title: '最后一题！',       subtitle: null },
+    ],
+    questions: [
+      { title: '周五晚上没有安排，你最可能在做什么？',         options: ['已经在群里喊人出去了', '和固定的几个朋友约了饭', '窝在家里，终于可以自己待着'] },
+      { title: '朋友让你帮忙做一个活动，你最想负责哪块？',     options: ['策划和创意，我来想方案', '执行落地，我来把它做出来', '现场氛围，我来炒热气氛'] },
+      { title: '我们正在招募愿意站上舞台的你——表演、主持、演讲都欢迎', options: SCORE_OPTIONS_ZH },
+      { title: '我们每周训练，一起备战校际联赛，要的就是那股拼劲',     options: SCORE_OPTIONS_ZH },
+      { title: '我们用镜头、画笔、代码创造东西，喜欢动手的你快来',     options: SCORE_OPTIONS_ZH },
+      { title: '我们每周读论文、做研究、办讲座，追求深度思考',         options: SCORE_OPTIONS_ZH },
+      { title: '你理想的社团活动节奏是？',     options: ['固定时间，雷打不动每周见', '有活动才聚，平时自由', '随缘，不想有太多固定安排'] },
+      { title: '每周你愿意为社团投入多少时间？', options: ['1-2小时，轻松参与就好', '3-5小时，认真但不影响学习', '5小时以上，我想全力投入'] },
+      { title: '在社团里你最想成为？',         options: ['带头的人，我喜欢负责和决策', '核心骨干，把事情做到最好', '自在参与，不想有太多压力'] },
+      { title: '你的理想社团，朋友圈发的是什么？', options: ['演出谢幕后和全体成员的大合照', '凌晨还在改的设计稿或拍摄素材', '训练完汗流浃背的自拍', '图书馆一起备赛堆满资料的书桌', '社团小聚，随手拍的温馨日常'] },
+    ],
+  },
+  en: {
+    navTitle: "Let's Find Your Fit",
+    groupCounter: (cur: number, total: number) => `Group ${cur} of ${total}`,
+    btnContinue: 'Continue →',
+    btnIncomplete: 'Please answer all questions',
+    generating: 'Generating your personalized recommendations…',
+    groups: [
+      { title: 'Tell Us About You',    subtitle: null },
+      { title: 'What Gets You Excited', subtitle: "You just saw this recruitment post — what's your gut reaction?" },
+      { title: 'Your Pace',            subtitle: null },
+      { title: 'Last One!',            subtitle: null },
+    ],
+    questions: [
+      { title: 'What are you most likely doing on a free Friday night?',           options: ["Already texting the group chat — let's go out", 'Having dinner with my close friend group', 'Home alone, finally some peace and quiet'] },
+      { title: 'A friend asks for help organizing an event. What role do you want?', options: ["Planning and ideas — I'll come up with the concept", "Execution — I'll make it happen", "Hype — I'll get everyone excited on the day"] },
+      { title: "We're looking for people ready to take the stage — performance, hosting, speaking, all welcome", options: SCORE_OPTIONS_EN },
+      { title: "We train every week and compete in inter-college leagues — it's all about that drive",           options: SCORE_OPTIONS_EN },
+      { title: 'We create with cameras, paintbrushes, and code — come join if you love making things',         options: SCORE_OPTIONS_EN },
+      { title: 'We read papers, do research, and host talks every week — deep thinking is our thing',          options: SCORE_OPTIONS_EN },
+      { title: "What's your ideal club meeting schedule?",               options: ['Fixed time every week — no exceptions', "Meet when there's an event, free otherwise", "Casual — I don't want too many fixed commitments"] },
+      { title: 'How many hours per week are you willing to put into a club?', options: ['1-2 hrs — light involvement', '3-5 hrs — committed but academics come first', '5+ hrs — I want to go all in'] },
+      { title: 'What role do you see yourself playing in a club?',       options: ['The leader — I like being in charge and making decisions', 'Core member — I want to do things really well', 'Just participating — no pressure please'] },
+      { title: "What would your ideal club's social media look like?",   options: ['Group photo with the full cast after the final curtain call', 'Design drafts still being tweaked at midnight', 'Post-training sweaty selfie', 'Library table piled with notes before a competition', 'Casual club hangout snapshots'] },
+    ],
+  },
+};
+
+// Merge translated text onto the data to produce typed Question objects
+function buildQuestions(lang: 'zh' | 'en'): Question[] {
+  const labels = TEXT[lang].questions;
+  return QUESTIONS_DATA.map((data, qi) => ({
+    title: labels[qi].title,
+    layout: data.layout,
+    ...(('dimension' in data) ? { dimension: data.dimension } : {}),
+    options: data.options.map((opt, i) => ({
+      emoji: opt.emoji,
+      text: labels[qi].options[i],
+      ...('effect' in opt ? { effect: opt.effect } : { score: (opt as { score: number }).score }),
+    })),
+  })) as Question[];
+}
+
 // Group 0: Q1,Q2 | Group 1: Q3-Q6 | Group 2: Q7-Q9 | Group 3: Q10
-const GROUPS = [
-  { title: '先聊聊你这个人',   subtitle: null,                          qIndices: [0, 1] },
-  { title: '哪些事会让你心动', subtitle: '看到这条招募信息，你的第一反应是？', qIndices: [2, 3, 4, 5] },
-  { title: '聊聊你的节奏',     subtitle: null,                          qIndices: [6, 7, 8] },
-  { title: '最后一题！',       subtitle: null,                          qIndices: [9] },
-];
+const GROUP_INDICES = [[0, 1], [2, 3, 4, 5], [6, 7, 8], [9]];
 
 // ─── Compute final answers ────────────────────────────────────────────────────
 
-function computeAnswers(sel: Record<number, number>): QuizAnswers {
+function computeAnswers(sel: Record<number, number>, questions: Question[]): QuizAnswers {
   const ans: QuizAnswers = {
     social: 0, creative: 0, perform: 0, sport: 0, academic: 0,
     schedule: null, hours: 3, role: null, vibe: null,
@@ -156,7 +216,7 @@ function computeAnswers(sel: Record<number, number>): QuizAnswers {
   // First pass: Q3-Q6 set dimension scores
   ([2, 3, 4, 5] as const).forEach((qi) => {
     if (sel[qi] === undefined) return;
-    const q = QUESTIONS[qi];
+    const q = questions[qi];
     const opt = q.options[sel[qi]] as ScoreOption;
     ans[q.dimension!] = opt.score;
   });
@@ -164,7 +224,7 @@ function computeAnswers(sel: Record<number, number>): QuizAnswers {
   // Second pass: effect questions (Q1, Q2, Q7, Q8, Q9, Q10)
   ([0, 1, 6, 7, 8, 9] as const).forEach((qi) => {
     if (sel[qi] === undefined) return;
-    const opt = QUESTIONS[qi].options[sel[qi]] as EffectOption;
+    const opt = questions[qi].options[sel[qi]] as EffectOption;
     Object.entries(opt.effect).forEach(([k, v]) => {
       if (k === 'schedule' || k === 'vibe' || k === 'role') {
         (ans as unknown as Record<string, unknown>)[k] = v;
@@ -271,6 +331,11 @@ const QuestionBlock = ({
 
 export default function QuizPage() {
   const router = useRouter();
+  const { language } = useLanguage();
+  const t = TEXT[language];
+  const QUESTIONS = buildQuestions(language);
+  const GROUPS = GROUP_INDICES.map((qIndices, i) => ({ ...t.groups[i], qIndices }));
+
   const [currentGroup, setCurrentGroup] = useState(0);
   const [selected, setSelected] = useState<Record<number, number>>({});
   const [scrolledFor, setScrolledFor] = useState<Set<number>>(new Set());
@@ -295,13 +360,13 @@ export default function QuizPage() {
       }
 
       if (isLastQ) {
-        const answers = computeAnswers(newSelected);
+        const answers = computeAnswers(newSelected, QUESTIONS);
         localStorage.setItem('quizAnswers', JSON.stringify(answers));
         setTimeout(() => router.push('/student/recommendations'), 450);
         return;
       }
 
-      if (!firstTime) return; // re-selection: don't re-scroll
+      if (!firstTime) return;
 
       if (isLastInGroup) {
         setTimeout(() => {
@@ -315,7 +380,7 @@ export default function QuizPage() {
         }, 200);
       }
     },
-    [selected, scrolledFor, group, router],
+    [selected, scrolledFor, group, router, QUESTIONS],
   );
 
   function handleNextGroup() {
@@ -323,11 +388,9 @@ export default function QuizPage() {
     setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 50);
   }
 
-  const progressPct = ((currentGroup) / GROUPS.length) * 100;
-
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#F8F7FF' }}>
-      <Navbar title="了解你自己" />
+      <Navbar title={t.navTitle} />
 
       <main style={{ padding: '20px 16px 40px' }}>
         {/* Progress bar */}
@@ -345,7 +408,7 @@ export default function QuizPage() {
             ))}
           </div>
           <p style={{ fontSize: 12, color: '#9B8EC4' }}>
-            第 {currentGroup + 1} 组 / 共 {GROUPS.length} 组
+            {t.groupCounter(currentGroup + 1, GROUPS.length)}
           </p>
           <h1 style={{ fontSize: 22, fontWeight: 700, color: '#1A1240', marginTop: 4 }}>
             {group.title}
@@ -384,7 +447,7 @@ export default function QuizPage() {
                 transition: 'background 0.2s',
               }}
             >
-              {groupComplete ? `继续 →` : `请完成本组所有题目`}
+              {groupComplete ? t.btnContinue : t.btnIncomplete}
             </button>
           </div>
         )}
@@ -392,7 +455,7 @@ export default function QuizPage() {
         {/* Redirect hint for Q10 */}
         {currentGroup === GROUPS.length - 1 && selected[9] !== undefined && (
           <div style={{ textAlign: 'center', marginTop: 20, color: '#9B8EC4', fontSize: 14 }}>
-            正在生成你的专属推荐…
+            {t.generating}
           </div>
         )}
       </main>

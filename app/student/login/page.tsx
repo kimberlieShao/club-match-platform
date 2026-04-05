@@ -2,8 +2,34 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useLanguage } from '@/lib/i18n';
 
-const GRADES = ['大一', '大二', '大三', '大四', '研究生'];
+const text = {
+  zh: {
+    slogan: '找到最适合你的大学社团',
+    register: '注册', login: '登录',
+    name: '姓名', namePlaceholder: '请输入真实姓名',
+    studentId: '学号', studentIdPlaceholder: '请输入学号',
+    major: '专业', majorPlaceholder: '例：计算机科学',
+    grade: '年级', grades: ['大一', '大二', '大三', '大四', '研究生'],
+    email: '邮箱', emailPlaceholder: 'school@edu.cn',
+    password: '密码', passwordPlaceholder: '至少6位',
+    createBtn: '创建账号 →', loginBtn: '登录 →',
+    terms: '登录即代表你同意 ClubMatch 用户协议',
+  },
+  en: {
+    slogan: 'Find your people on campus',
+    register: 'Sign Up', login: 'Sign In',
+    name: 'Full Name', namePlaceholder: 'Your full name',
+    studentId: 'Student ID', studentIdPlaceholder: 'Enter your student ID',
+    major: 'Major', majorPlaceholder: 'e.g. Computer Science',
+    grade: 'Year', grades: ['Freshman', 'Sophomore', 'Junior', 'Senior', 'Graduate Student'],
+    email: 'Email', emailPlaceholder: 'your@university.edu',
+    password: 'Password', passwordPlaceholder: 'At least 6 characters',
+    createBtn: 'Create Account →', loginBtn: 'Sign In →',
+    terms: 'By continuing, you agree to the ClubMatch Terms of Service',
+  },
+};
 
 const inputStyle: React.CSSProperties = {
   width: '100%', padding: '12px 14px',
@@ -19,18 +45,21 @@ const labelStyle: React.CSSProperties = {
 
 export default function LoginPage() {
   const router = useRouter();
+  const { language } = useLanguage();
+  const t = language === 'en' ? text.en : text.zh;
+
   const [tab, setTab] = useState<'login' | 'register'>('register');
 
   // Register fields
-  const [name, setName]       = useState('');
-  const [sid, setSid]         = useState('');
-  const [major, setMajor]     = useState('');
-  const [grade, setGrade]     = useState('大一');
-  const [email, setEmail]     = useState('');
+  const [name, setName]         = useState('');
+  const [sid, setSid]           = useState('');
+  const [major, setMajor]       = useState('');
+  const [grade, setGrade]       = useState(t.grades[0]);
+  const [email, setEmail]       = useState('');
   const [password, setPassword] = useState('');
 
   // Login fields
-  const [loginSid, setLoginSid]         = useState('');
+  const [loginSid, setLoginSid]           = useState('');
   const [loginPassword, setLoginPassword] = useState('');
 
   function handleRegister() {
@@ -40,7 +69,6 @@ export default function LoginPage() {
   }
 
   function handleLogin() {
-    // No real auth — just merge studentId into any existing profile
     const stored = localStorage.getItem('studentProfile');
     const base = stored ? JSON.parse(stored) : {};
     localStorage.setItem('studentProfile', JSON.stringify({ ...base, studentId: loginSid }));
@@ -58,27 +86,27 @@ export default function LoginPage() {
           <span style={{ color: '#fff', fontSize: 24, fontWeight: 800 }}>C</span>
         </div>
         <h1 style={{ fontSize: 22, fontWeight: 800, color: '#1A1240', margin: 0 }}>ClubMatch</h1>
-        <p style={{ fontSize: 13, color: '#9B8EC4', marginTop: 4 }}>找到最适合你的大学社团</p>
+        <p style={{ fontSize: 13, color: '#9B8EC4', marginTop: 4 }}>{t.slogan}</p>
       </div>
 
       {/* Card */}
       <div style={{ width: '100%', maxWidth: 420, background: '#fff', borderRadius: 24, boxShadow: '0 8px 32px rgba(83,74,183,0.12)', padding: '28px 24px' }}>
         {/* Tabs */}
         <div style={{ display: 'flex', background: '#F5F3FF', borderRadius: 12, padding: 4, marginBottom: 28 }}>
-          {(['register', 'login'] as const).map((t) => (
+          {(['register', 'login'] as const).map((tabKey) => (
             <button
-              key={t}
-              onClick={() => setTab(t)}
+              key={tabKey}
+              onClick={() => setTab(tabKey)}
               style={{
                 flex: 1, padding: '9px 0', borderRadius: 10,
                 border: 'none', cursor: 'pointer',
                 fontSize: 14, fontWeight: 600,
-                background: tab === t ? '#534AB7' : 'transparent',
-                color: tab === t ? '#fff' : '#9B8EC4',
+                background: tab === tabKey ? '#534AB7' : 'transparent',
+                color: tab === tabKey ? '#fff' : '#9B8EC4',
                 transition: 'all 0.2s',
               }}
             >
-              {t === 'register' ? '注册' : '登录'}
+              {tabKey === 'register' ? t.register : t.login}
             </button>
           ))}
         </div>
@@ -86,30 +114,30 @@ export default function LoginPage() {
         {tab === 'register' ? (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
             <div>
-              <label style={labelStyle}>姓名</label>
-              <input style={inputStyle} placeholder="请输入真实姓名" value={name} onChange={(e) => setName(e.target.value)} />
+              <label style={labelStyle}>{t.name}</label>
+              <input style={inputStyle} placeholder={t.namePlaceholder} value={name} onChange={(e) => setName(e.target.value)} />
             </div>
             <div>
-              <label style={labelStyle}>学号</label>
-              <input style={inputStyle} placeholder="请输入学号" value={sid} onChange={(e) => setSid(e.target.value)} />
+              <label style={labelStyle}>{t.studentId}</label>
+              <input style={inputStyle} placeholder={t.studentIdPlaceholder} value={sid} onChange={(e) => setSid(e.target.value)} />
             </div>
             <div>
-              <label style={labelStyle}>专业</label>
-              <input style={inputStyle} placeholder="例：计算机科学" value={major} onChange={(e) => setMajor(e.target.value)} />
+              <label style={labelStyle}>{t.major}</label>
+              <input style={inputStyle} placeholder={t.majorPlaceholder} value={major} onChange={(e) => setMajor(e.target.value)} />
             </div>
             <div>
-              <label style={labelStyle}>年级</label>
+              <label style={labelStyle}>{t.grade}</label>
               <select style={inputStyle} value={grade} onChange={(e) => setGrade(e.target.value)}>
-                {GRADES.map((g) => <option key={g} value={g}>{g}</option>)}
+                {t.grades.map((g) => <option key={g} value={g}>{g}</option>)}
               </select>
             </div>
             <div>
-              <label style={labelStyle}>邮箱</label>
-              <input style={inputStyle} type="email" placeholder="school@edu.cn" value={email} onChange={(e) => setEmail(e.target.value)} />
+              <label style={labelStyle}>{t.email}</label>
+              <input style={inputStyle} type="email" placeholder={t.emailPlaceholder} value={email} onChange={(e) => setEmail(e.target.value)} />
             </div>
             <div>
-              <label style={labelStyle}>密码</label>
-              <input style={inputStyle} type="password" placeholder="至少6位" value={password} onChange={(e) => setPassword(e.target.value)} />
+              <label style={labelStyle}>{t.password}</label>
+              <input style={inputStyle} type="password" placeholder={t.passwordPlaceholder} value={password} onChange={(e) => setPassword(e.target.value)} />
             </div>
             <button
               onClick={handleRegister}
@@ -123,18 +151,18 @@ export default function LoginPage() {
                 transition: 'background 0.2s',
               }}
             >
-              创建账号 →
+              {t.createBtn}
             </button>
           </div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
             <div>
-              <label style={labelStyle}>学号</label>
-              <input style={inputStyle} placeholder="请输入学号" value={loginSid} onChange={(e) => setLoginSid(e.target.value)} />
+              <label style={labelStyle}>{t.studentId}</label>
+              <input style={inputStyle} placeholder={t.studentIdPlaceholder} value={loginSid} onChange={(e) => setLoginSid(e.target.value)} />
             </div>
             <div>
-              <label style={labelStyle}>密码</label>
-              <input style={inputStyle} type="password" placeholder="请输入密码" value={loginPassword} onChange={(e) => setLoginPassword(e.target.value)} />
+              <label style={labelStyle}>{t.password}</label>
+              <input style={inputStyle} type="password" placeholder={t.passwordPlaceholder} value={loginPassword} onChange={(e) => setLoginPassword(e.target.value)} />
             </div>
             <button
               onClick={handleLogin}
@@ -148,14 +176,14 @@ export default function LoginPage() {
                 transition: 'background 0.2s',
               }}
             >
-              登录
+              {t.loginBtn}
             </button>
           </div>
         )}
       </div>
 
       <p style={{ marginTop: 24, fontSize: 12, color: '#B8AEDC' }}>
-        登录即代表你同意 ClubMatch 用户协议
+        {t.terms}
       </p>
     </div>
   );

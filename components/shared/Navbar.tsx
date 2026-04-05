@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { useLanguage } from '@/lib/i18n';
 
 interface NavbarProps {
   title: string;
@@ -35,6 +36,7 @@ export default function Navbar({ title }: NavbarProps) {
     window.location.reload();
   };
 
+  const { language, setLanguage } = useLanguage();
   const initial = profile?.name ? profile.name[0] : '';
 
   return (
@@ -47,6 +49,12 @@ export default function Navbar({ title }: NavbarProps) {
       </button>
       <span className="font-semibold text-[#1A1240] text-base">{title}</span>
       <div className="flex items-center gap-1.5">
+        <button
+          onClick={() => setLanguage(language === 'zh' ? 'en' : 'zh')}
+          className="text-xs font-semibold px-2 py-1 rounded-lg border border-[#534AB7] text-[#534AB7] hover:bg-[#F0EEFF] transition-colors"
+        >
+          {language === 'zh' ? 'EN' : '中文'}
+        </button>
         <Link href="/">
           <div className="w-9 h-9 flex items-center justify-center rounded-xl hover:bg-[#F0EEFF] transition-colors text-[#534AB7] text-lg">
             ⌂

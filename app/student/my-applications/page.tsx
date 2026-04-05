@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Navbar from '@/components/shared/Navbar';
+import { useLanguage } from '@/lib/i18n';
 
 interface Application {
   clubName: string;
@@ -15,6 +16,7 @@ interface Application {
   aiSummary?: string;
 }
 
+// Internal tab values stay Chinese to match app.status
 const STATUS_TABS = ['全部', '待审核', '已通过', '已拒绝'] as const;
 type Tab = typeof STATUS_TABS[number];
 
@@ -30,6 +32,41 @@ const DOT_COLOR: Record<string, string> = {
   已拒绝: '#C2506A',
 };
 
+const text = {
+  zh: {
+    title: '我的申请',
+    all: '全部', pending: '待审核', accepted: '已通过', declined: '已拒绝',
+    pendingBadge: '待审核', acceptedBadge: '已通过', declinedBadge: '已拒绝',
+    replyTime: '预计3个工作日内回复',
+    viewDetail: '查看详情', withdraw: '撤回申请',
+    confirmWithdraw: '确认撤回对',
+    confirmWithdraw2: '的申请？撤回后不可恢复',
+    confirm: '确认撤回', cancel: '取消',
+    empty: '还没有申请记录，去发现社团吧',
+    emptyBtn: '去看看 →',
+    appliedAt: '提交申请',
+    viewClub: '查看社团 →',
+    collapse: '收起 ▲', expand: '查看详情 ▼',
+    detailTime: '申请时间', detailReason: '申请理由', detailTags: '个人标签', detailAI: 'AI 总结',
+  },
+  en: {
+    title: 'My Applications',
+    all: 'All', pending: 'Pending', accepted: 'Accepted', declined: 'Declined',
+    pendingBadge: 'Pending', acceptedBadge: 'Accepted', declinedBadge: 'Declined',
+    replyTime: 'Usually hear back within 3 business days',
+    viewDetail: 'View Details', withdraw: 'Withdraw',
+    confirmWithdraw: 'Withdraw your application to',
+    confirmWithdraw2: '? This cannot be undone.',
+    confirm: 'Confirm', cancel: 'Cancel',
+    empty: "No applications yet — go find your club!",
+    emptyBtn: 'Explore clubs →',
+    appliedAt: 'Applied',
+    viewClub: 'View Club →',
+    collapse: 'Collapse ▲', expand: 'View Details ▼',
+    detailTime: 'Applied At', detailReason: 'Reason', detailTags: 'Tags', detailAI: 'AI Summary',
+  },
+};
+
 function formatDateTime(iso: string) {
   const d = new Date(iso);
   const pad = (n: number) => String(n).padStart(2, '0');
@@ -41,6 +78,9 @@ function appKey(app: Application) {
 }
 
 export default function MyApplicationsPage() {
+  const { language } = useLanguage();
+  const t = language === 'en' ? text.en : text.zh;
+
   const [apps, setApps] = useState<Application[]>([]);
   const [tab, setTab] = useState<Tab>('全部');
   const [expandedKey, setExpandedKey] = useState<string | null>(null);
@@ -53,6 +93,16 @@ export default function MyApplicationsPage() {
 
   const filtered = tab === '全部' ? apps : apps.filter((a) => a.status === tab);
 
+  // Maps internal Chinese status → localized display label
+  const statusLabel: Record<string, string> = {
+    '待审核': t.pendingBadge,
+    '已通过': t.acceptedBadge,
+    '已拒绝': t.declinedBadge,
+  };
+
+  // Tab display labels in order matching STATUS_TABS
+  const tabLabels = [t.all, t.pending, t.accepted, t.declined];
+
   const handleWithdraw = (key: string) => {
     const updated = apps.filter((a) => appKey(a) !== key);
     localStorage.setItem('myApplications', JSON.stringify(updated));
@@ -63,22 +113,22 @@ export default function MyApplicationsPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#EDE9FF] to-[#F5F3FF] flex flex-col">
-      <Navbar title="我的申请" />
+      <Navbar title={t.title} />
 
       <main className="flex-1 px-4 py-6">
         {/* Status tabs */}
         <div className="flex gap-2 mb-6 overflow-x-auto pb-1">
-          {STATUS_TABS.map((t) => (
+          {STATUS_TABS.map((tabValue, i) => (
             <button
-              key={t}
-              onClick={() => setTab(t)}
+              key={tabValue}
+              onClick={() => setTab(tabValue)}
               className={`shrink-0 px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${
-                tab === t
+                tab === tabValue
                   ? 'bg-[#534AB7] text-white'
                   : 'bg-white text-[#9B8EC4] border border-[#E5DEFF]'
               }`}
             >
-              {t}
+              {tabLabels[i]}
             </button>
           ))}
         </div>
@@ -87,14 +137,14 @@ export default function MyApplicationsPage() {
           <div className="flex flex-col items-center justify-center py-20 text-center">
             <div className="text-5xl mb-4">📭</div>
             <p className="text-[#6B5FA6] font-medium mb-1">
-              {tab === '全部' ? '还没有申请记录，去发现社团吧' : `暂无${tab}的申请`}
+              {tab === '全部' ? t.empty : `暂无${statusLabel[tab]}的申请`}
             </p>
             {tab === '全部' && (
               <Link
                 href="/student/recommendations"
                 className="mt-5 px-6 py-2.5 bg-[#534AB7] text-white rounded-xl font-medium text-sm"
               >
-                去看看 →
+                {t.emptyBtn}
               </Link>
             )}
           </div>
@@ -126,16 +176,16 @@ export default function MyApplicationsPage() {
                             className="text-xs px-2 py-0.5 rounded-full font-medium shrink-0"
                             style={{ background: style.bg, color: style.color }}
                           >
-                            {app.status}
+                            {statusLabel[app.status] ?? app.status}
                           </span>
                         </div>
-                        <p className="text-xs text-[#9B8EC4] mb-2">{formatDateTime(app.appliedAt)} 提交申请</p>
+                        <p className="text-xs text-[#9B8EC4] mb-2">{formatDateTime(app.appliedAt)} {t.appliedAt}</p>
                         {app.status === '待审核' && !isConfirming && (
-                          <p className="text-xs text-[#C0B8E0] mb-2">预计3个工作日内回复</p>
+                          <p className="text-xs text-[#C0B8E0] mb-2">{t.replyTime}</p>
                         )}
                         {app.status === '已通过' && (
                           <Link href={`/student/club/${app.clubId}`} className="text-xs text-[#534AB7] font-semibold block mb-2">
-                            查看社团 →
+                            {t.viewClub}
                           </Link>
                         )}
 
@@ -143,20 +193,20 @@ export default function MyApplicationsPage() {
                         {isConfirming && (
                           <div className="bg-red-50 border border-red-200 rounded-xl p-3 mb-3">
                             <p className="text-sm text-red-700 mb-3">
-                              确认撤回对 <strong>{app.clubName}</strong> 的申请？撤回后不可恢复
+                              {t.confirmWithdraw} <strong>{app.clubName}</strong>{t.confirmWithdraw2}
                             </p>
                             <div className="flex gap-2">
                               <button
                                 onClick={() => handleWithdraw(key)}
                                 className="flex-1 py-1.5 bg-red-500 text-white rounded-lg text-sm font-medium"
                               >
-                                确认撤回
+                                {t.confirm}
                               </button>
                               <button
                                 onClick={() => setConfirmKey(null)}
                                 className="flex-1 py-1.5 bg-white border border-[#E5DEFF] text-[#6B5FA6] rounded-lg text-sm"
                               >
-                                取消
+                                {t.cancel}
                               </button>
                             </div>
                           </div>
@@ -168,14 +218,14 @@ export default function MyApplicationsPage() {
                             onClick={() => setExpandedKey(isExpanded ? null : key)}
                             className="text-xs text-[#534AB7] font-medium"
                           >
-                            {isExpanded ? '收起 ▲' : '查看详情 ▼'}
+                            {isExpanded ? t.collapse : t.expand}
                           </button>
                           {app.status === '待审核' && !isConfirming && (
                             <button
                               onClick={() => setConfirmKey(key)}
                               className="text-xs text-red-400 font-medium"
                             >
-                              撤回申请
+                              {t.withdraw}
                             </button>
                           )}
                         </div>
@@ -185,18 +235,18 @@ export default function MyApplicationsPage() {
                       {isExpanded && (
                         <div className="border-t border-[#F0EEFF] px-4 py-3 bg-[#FAFAFF] flex flex-col gap-2.5">
                           <div className="flex gap-2">
-                            <span className="text-xs text-[#9B8EC4] w-16 shrink-0">申请时间</span>
+                            <span className="text-xs text-[#9B8EC4] w-16 shrink-0">{t.detailTime}</span>
                             <span className="text-xs text-[#1A1240]">{formatDateTime(app.appliedAt)}</span>
                           </div>
                           {app.reason ? (
                             <div className="flex gap-2">
-                              <span className="text-xs text-[#9B8EC4] w-16 shrink-0">申请理由</span>
+                              <span className="text-xs text-[#9B8EC4] w-16 shrink-0">{t.detailReason}</span>
                               <span className="text-xs text-[#1A1240] leading-relaxed">{app.reason}</span>
                             </div>
                           ) : null}
                           {(app.mbti || app.zodiac) && (
                             <div className="flex gap-2">
-                              <span className="text-xs text-[#9B8EC4] w-16 shrink-0">个人标签</span>
+                              <span className="text-xs text-[#9B8EC4] w-16 shrink-0">{t.detailTags}</span>
                               <div className="flex gap-1.5 flex-wrap">
                                 {app.mbti && (
                                   <span className="text-xs bg-[#EDE9FF] text-[#534AB7] px-2 py-0.5 rounded-full">{app.mbti}</span>
@@ -210,7 +260,7 @@ export default function MyApplicationsPage() {
                           {app.aiSummary ? (
                             <div className="flex gap-2">
                               <span className="text-xs text-[#9B8EC4] w-16 shrink-0 flex items-start gap-1">
-                                AI 总结
+                                {t.detailAI}
                                 <span className="bg-[#534AB7] text-white text-[10px] px-1 py-0.5 rounded font-medium leading-none">AI</span>
                               </span>
                               <span className="text-xs text-[#1A1240] leading-relaxed">{app.aiSummary}</span>
