@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useLanguage } from '@/lib/i18n';
+import Navbar from '@/components/shared/Navbar';
 
 const text = {
   zh: {
@@ -79,9 +80,11 @@ export default function LoginPage() {
   const loginReady    = loginSid && loginPassword;
 
   return (
-    <div style={{ minHeight: '100vh', background: 'linear-gradient(160deg,#EDE9FF 0%,#F5F3FF 100%)', display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '0 20px 40px' }}>
+    <div style={{ minHeight: '100vh', background: 'linear-gradient(160deg,#EDE9FF 0%,#F5F3FF 100%)' }}>
+      <Navbar titleZh="登录" titleEn="Sign In" />
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '0 20px 40px' }}>
       {/* Logo */}
-      <div style={{ paddingTop: 56, marginBottom: 32, textAlign: 'center' }}>
+      <div style={{ paddingTop: 36, marginBottom: 32, textAlign: 'center' }}>
         <div style={{ width: 52, height: 52, borderRadius: 14, background: '#534AB7', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 10px', boxShadow: '0 4px 16px rgba(83,74,183,0.3)' }}>
           <span style={{ color: '#fff', fontSize: 24, fontWeight: 800 }}>C</span>
         </div>
@@ -185,6 +188,7 @@ export default function LoginPage() {
       <p style={{ marginTop: 24, fontSize: 12, color: '#B8AEDC' }}>
         {t.terms}
       </p>
+      </div>
     </div>
   );
 }

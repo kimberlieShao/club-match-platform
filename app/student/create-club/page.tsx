@@ -66,7 +66,7 @@ export default function CreateClubPage() {
   if (submitted) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-[#EDE9FF] to-[#F5F3FF] flex flex-col">
-        <Navbar title="申请创建社团" />
+        <Navbar titleZh="申请创建社团" titleEn="Start a Club" />
         <main className="flex-1 flex flex-col items-center justify-center px-4">
           <div className="text-6xl mb-5">🎉</div>
           <h2 className="text-xl font-bold text-[#1A1240] mb-2">申请已提交</h2>

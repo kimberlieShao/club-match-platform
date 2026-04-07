@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import Navbar from '@/components/shared/Navbar';
 
 const highlights = [
   {
@@ -20,12 +21,9 @@ const highlights = [
 
 export default function WelcomePage() {
   return (
-    <main className="min-h-screen bg-gradient-to-br from-[#EDE9FF] to-[#F5F3FF] flex flex-col px-4 py-8">
-      {/* Back */}
-      <Link href="/" className="text-[#534AB7] text-sm flex items-center gap-1 mb-8 w-fit">
-        ← 返回首页
-      </Link>
-
+    <div className="min-h-screen bg-gradient-to-br from-[#EDE9FF] to-[#F5F3FF] flex flex-col">
+      <Navbar titleZh="欢迎" titleEn="Welcome" />
+      <main className="flex-1 flex flex-col px-4 py-8">
       {/* Hero */}
       <div className="flex-1 flex flex-col items-center justify-center text-center mb-8">
         <div className="w-20 h-20 rounded-3xl bg-[#534AB7] flex items-center justify-center mb-6 shadow-xl">
@@ -63,6 +61,7 @@ export default function WelcomePage() {
           </button>
         </Link>
       </div>
-    </main>
+      </main>
+    </div>
   );
 }

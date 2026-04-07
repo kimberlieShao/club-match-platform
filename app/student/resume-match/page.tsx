@@ -81,7 +81,7 @@ export default function ResumeMatchPage() {
 
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#F8F7FF' }}>
-      <Navbar title="简历智能匹配" />
+      <Navbar titleZh="简历智能匹配" titleEn="Resume Matching" />
 
       <main style={{ padding: '20px 16px 40px' }}>
         {/* Upload area */}

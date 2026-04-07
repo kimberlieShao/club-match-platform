@@ -33,7 +33,7 @@ export default function AllClubsPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#EDE9FF] to-[#F5F3FF] flex flex-col">
-      <Navbar title="全部社团" />
+      <Navbar titleZh="全部社团" titleEn="All Clubs" />
 
       <main className="flex-1 px-4 py-5">
         {/* Search */}
