@@ -47,6 +47,7 @@ export interface ClubProfile {
 export interface Club {
   id: string;
   name: string;
+  nameEn?: string;
   category: '文艺' | '体育' | '学术' | '公益' | '科技';
   description: string;
   tags: string[];

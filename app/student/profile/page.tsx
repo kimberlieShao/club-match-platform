@@ -4,15 +4,79 @@ import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Navbar from '@/components/shared/Navbar';
+import { useLanguage } from '@/lib/i18n';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-const GRADES   = ['大一', '大二', '大三', '大四', '研究生'];
+const GRADES    = ['大一', '大二', '大三', '大四', '研究生'];
+const GRADES_EN = ['Freshman', 'Sophomore', 'Junior', 'Senior', 'Graduate'];
+
 const MBTI_LIST = ['INTJ','INTP','ENTJ','ENTP','INFJ','INFP','ENFJ','ENFP',
                    'ISTJ','ISFJ','ESTJ','ESFJ','ISTP','ISFP','ESTP','ESFP'];
+
 const ZODIAC_LIST = ['白羊座','金牛座','双子座','巨蟹座','狮子座','处女座',
                      '天秤座','天蝎座','射手座','摩羯座','水瓶座','双鱼座'];
+const ZODIAC_EN   = ['Aries','Taurus','Gemini','Cancer','Leo','Virgo',
+                     'Libra','Scorpio','Sagittarius','Capricorn','Aquarius','Pisces'];
+
 const AVATAR_COLORS = ['#534AB7','#7C3AED','#0891B2','#059669','#DC2626'];
+
+const text = {
+  zh: {
+    navTitle: '我的资料',
+    sectionBasic: '基本信息',
+    sectionResume: '我的简历',
+    sectionMatch: '匹配偏好',
+    avatarHint: '点击头像更换颜色',
+    name: '姓名', namePlaceholder: '真实姓名',
+    studentId: '学号', studentIdPlaceholder: '学号',
+    major: '专业', majorPlaceholder: '例：计算机科学',
+    grade: '年级',
+    email: '邮箱',
+    mbti: 'MBTI',
+    zodiac: '星座',
+    bio: '个人简介', bioPlaceholder: '介绍一下你自己，加入社团的期望等…',
+    bioAI: '✨ AI 帮我写', bioAILoading: '生成中…',
+    unknown: '未知',
+    uploadResume: '上传简历（PDF）', uploadHint: '支持 .pdf 格式',
+    analyzeResume: '✨ AI 解析简历', analyzeLoading: '✨ AI 解析中…',
+    aiStrengthLabel: 'AI 生成的个人优势', regenerate: '重新生成',
+    autoAttach: '📤 申请社团时将自动附上此摘要',
+    reupload: '重新上传',
+    uploadedResume: '已上传的简历',
+    quizMatch: '根据问卷匹配', quizMatchSub: '10题 · 3分钟 · AI精准匹配',
+    resumeMatch: '根据简历匹配', resumeMatchSub: '上传简历 · AI提取关键词 · 智能匹配',
+    startMatch: '开始匹配',
+    save: '保存资料', saved: '已保存 ✓',
+  },
+  en: {
+    navTitle: 'My Profile',
+    sectionBasic: 'Basic Info',
+    sectionResume: 'My Resume',
+    sectionMatch: 'Match Preferences',
+    avatarHint: 'Tap avatar to change color',
+    name: 'Name', namePlaceholder: 'Full name',
+    studentId: 'Student ID', studentIdPlaceholder: 'Student ID',
+    major: 'Major', majorPlaceholder: 'e.g. Computer Science',
+    grade: 'Year',
+    email: 'Email',
+    mbti: 'MBTI',
+    zodiac: 'Zodiac',
+    bio: 'Bio', bioPlaceholder: 'Tell us about yourself and what you hope to get from clubs…',
+    bioAI: '✨ AI Write for Me', bioAILoading: 'Generating…',
+    unknown: 'Unknown',
+    uploadResume: 'Upload Resume (PDF)', uploadHint: 'Supports .pdf format',
+    analyzeResume: '✨ AI Analyze Resume', analyzeLoading: '✨ Analyzing…',
+    aiStrengthLabel: 'AI-generated strengths', regenerate: 'Regenerate',
+    autoAttach: '📤 This summary will be attached to your applications',
+    reupload: 'Re-upload',
+    uploadedResume: 'Uploaded resume',
+    quizMatch: 'Match by Quiz', quizMatchSub: '10 questions · 3 min · AI-powered',
+    resumeMatch: 'Match by Resume', resumeMatchSub: 'Upload resume · AI extracts keywords · Smart match',
+    startMatch: 'Start Matching',
+    save: 'Save Profile', saved: 'Saved ✓',
+  },
+};
 
 interface Profile {
   name: string; studentId: string; major: string; grade: string; email: string;
@@ -62,6 +126,9 @@ function FieldRow({ label, children }: { label: string; children: React.ReactNod
 
 export default function ProfilePage() {
   const router = useRouter();
+  const { language } = useLanguage();
+  const t = language === 'en' ? text.en : text.zh;
+
   const [profile, setProfile] = useState<Profile>(EMPTY);
   const [bioLoading, setBioLoading]       = useState(false);
   const [resumeAnalyzing, setResumeAnalyzing] = useState(false);
@@ -91,7 +158,7 @@ export default function ProfilePage() {
 
   function save() {
     localStorage.setItem('studentProfile', JSON.stringify({ ...profile, avatarColor: AVATAR_COLORS[avatarIdx] }));
-    setSavedMsg('已保存 ✓');
+    setSavedMsg(t.saved);
     setTimeout(() => setSavedMsg(''), 2000);
   }
 
@@ -131,12 +198,12 @@ export default function ProfilePage() {
 
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#F8F7FF' }}>
-      <Navbar title="我的资料" />
+      <Navbar title={t.navTitle} />
 
       <main style={{ padding: '16px 16px 100px' }}>
 
         {/* ── Section 1: Basic Info ── */}
-        <Section title="基本信息">
+        <Section title={t.sectionBasic}>
           {/* Avatar */}
           <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 20 }}>
             <div style={{ position: 'relative', display: 'inline-block' }}>
@@ -158,55 +225,55 @@ export default function ProfilePage() {
               </div>
             </div>
           </div>
-          <p style={{ textAlign: 'center', fontSize: 11, color: '#B8AEDC', marginTop: -12, marginBottom: 16 }}>点击头像更换颜色</p>
+          <p style={{ textAlign: 'center', fontSize: 11, color: '#B8AEDC', marginTop: -12, marginBottom: 16 }}>{t.avatarHint}</p>
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 12px' }}>
-            <FieldRow label="姓名">
-              <input style={field} value={profile.name} onChange={(e) => set('name', e.target.value)} placeholder="真实姓名" />
+            <FieldRow label={t.name}>
+              <input style={field} value={profile.name} onChange={(e) => set('name', e.target.value)} placeholder={t.namePlaceholder} />
             </FieldRow>
-            <FieldRow label="学号">
-              <input style={field} value={profile.studentId} onChange={(e) => set('studentId', e.target.value)} placeholder="学号" />
+            <FieldRow label={t.studentId}>
+              <input style={field} value={profile.studentId} onChange={(e) => set('studentId', e.target.value)} placeholder={t.studentIdPlaceholder} />
             </FieldRow>
           </div>
 
-          <FieldRow label="专业">
-            <input style={field} value={profile.major} onChange={(e) => set('major', e.target.value)} placeholder="例：计算机科学" />
+          <FieldRow label={t.major}>
+            <input style={field} value={profile.major} onChange={(e) => set('major', e.target.value)} placeholder={t.majorPlaceholder} />
           </FieldRow>
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 12px' }}>
-            <FieldRow label="年级">
+            <FieldRow label={t.grade}>
               <select style={field} value={profile.grade} onChange={(e) => set('grade', e.target.value)}>
-                {GRADES.map((g) => <option key={g}>{g}</option>)}
+                {GRADES.map((g, i) => <option key={g} value={g}>{language === 'en' ? GRADES_EN[i] : g}</option>)}
               </select>
             </FieldRow>
-            <FieldRow label="邮箱">
+            <FieldRow label={t.email}>
               <input style={field} value={profile.email} onChange={(e) => set('email', e.target.value)} placeholder="school@edu.cn" type="email" />
             </FieldRow>
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 12px' }}>
-            <FieldRow label="MBTI">
+            <FieldRow label={t.mbti}>
               <select style={field} value={profile.mbti} onChange={(e) => set('mbti', e.target.value)}>
-                <option value="">未知</option>
+                <option value="">{t.unknown}</option>
                 {MBTI_LIST.map((m) => <option key={m}>{m}</option>)}
               </select>
             </FieldRow>
-            <FieldRow label="星座">
+            <FieldRow label={t.zodiac}>
               <select style={field} value={profile.zodiac} onChange={(e) => set('zodiac', e.target.value)}>
-                <option value="">未知</option>
-                {ZODIAC_LIST.map((z) => <option key={z}>{z}</option>)}
+                <option value="">{t.unknown}</option>
+                {ZODIAC_LIST.map((z, i) => <option key={z} value={z}>{language === 'en' ? ZODIAC_EN[i] : z}</option>)}
               </select>
             </FieldRow>
           </div>
 
-          <FieldRow label="个人简介">
+          <FieldRow label={t.bio}>
             <div style={{ position: 'relative' }}>
               <textarea
                 rows={4}
                 style={{ ...field, resize: 'none', paddingBottom: 36 }}
                 value={profile.bio}
                 onChange={(e) => set('bio', e.target.value)}
-                placeholder="介绍一下你自己，加入社团的期望等…"
+                placeholder={t.bioPlaceholder}
               />
               <button
                 onClick={handleBioCopilot}
@@ -219,14 +286,14 @@ export default function ProfilePage() {
                   cursor: 'pointer',
                 }}
               >
-                {bioLoading ? '生成中…' : '✨ AI 帮我写'}
+                {bioLoading ? t.bioAILoading : t.bioAI}
               </button>
             </div>
           </FieldRow>
         </Section>
 
         {/* ── Section 2: Resume ── */}
-        <Section title="我的简历">
+        <Section title={t.sectionResume}>
           <input
             ref={fileInputRef}
             type="file"
@@ -246,8 +313,8 @@ export default function ProfilePage() {
               }}
             >
               <span style={{ fontSize: 28 }}>📎</span>
-              <span style={{ fontSize: 14, fontWeight: 600, color: '#534AB7' }}>上传简历（PDF）</span>
-              <span style={{ fontSize: 12, color: '#9B8EC4' }}>支持 .pdf 格式</span>
+              <span style={{ fontSize: 14, fontWeight: 600, color: '#534AB7' }}>{t.uploadResume}</span>
+              <span style={{ fontSize: 12, color: '#9B8EC4' }}>{t.uploadHint}</span>
             </button>
           ) : (
             <div>
@@ -278,7 +345,7 @@ export default function ProfilePage() {
                     cursor: 'pointer', marginBottom: 12,
                   }}
                 >
-                  {resumeAnalyzing ? '✨ AI 解析中…' : '✨ AI 解析简历'}
+                  {resumeAnalyzing ? t.analyzeLoading : t.analyzeResume}
                 </button>
               )}
 
@@ -286,16 +353,16 @@ export default function ProfilePage() {
               {profile.aiStrengthSummary && (
                 <div style={{ background: '#F5F3FF', borderRadius: 12, padding: '14px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
-                    <span style={{ fontSize: 11, background: '#EEEDFE', color: '#534AB7', padding: '2px 8px', borderRadius: 6, fontWeight: 700 }}>AI 生成的个人优势</span>
+                    <span style={{ fontSize: 11, background: '#EEEDFE', color: '#534AB7', padding: '2px 8px', borderRadius: 6, fontWeight: 700 }}>{t.aiStrengthLabel}</span>
                     <button
                       onClick={handleResumeAnalyze}
                       style={{ fontSize: 11, color: '#9B8EC4', border: 'none', background: 'none', cursor: 'pointer' }}
                     >
-                      重新生成
+                      {t.regenerate}
                     </button>
                   </div>
                   <p style={{ fontSize: 13, color: '#3C3489', lineHeight: 1.7 }}>{profile.aiStrengthSummary}</p>
-                  <p style={{ fontSize: 11, color: '#B8AEDC', marginTop: 8 }}>📤 申请社团时将自动附上此摘要</p>
+                  <p style={{ fontSize: 11, color: '#B8AEDC', marginTop: 8 }}>{t.autoAttach}</p>
                 </div>
               )}
 
@@ -303,21 +370,21 @@ export default function ProfilePage() {
                 onClick={() => fileInputRef.current?.click()}
                 style={{ fontSize: 12, color: '#9B8EC4', border: 'none', background: 'none', cursor: 'pointer', marginTop: 8 }}
               >
-                重新上传
+                {t.reupload}
               </button>
             </div>
           )}
         </Section>
 
         {/* ── Section 3: Match Preferences ── */}
-        <Section title="匹配偏好">
+        <Section title={t.sectionMatch}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             <Link href="/student/quiz" style={{ textDecoration: 'none' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '16px 14px', background: 'linear-gradient(135deg,#534AB7,#7C6FD6)', borderRadius: 14, cursor: 'pointer' }}>
                 <span style={{ fontSize: 28 }}>📝</span>
                 <div style={{ flex: 1 }}>
-                  <p style={{ fontSize: 15, fontWeight: 700, color: '#fff', marginBottom: 2 }}>根据问卷匹配</p>
-                  <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.75)' }}>10题 · 3分钟 · AI精准匹配</p>
+                  <p style={{ fontSize: 15, fontWeight: 700, color: '#fff', marginBottom: 2 }}>{t.quizMatch}</p>
+                  <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.75)' }}>{t.quizMatchSub}</p>
                 </div>
                 <span style={{ color: 'rgba(255,255,255,0.7)', fontSize: 18 }}>→</span>
               </div>
@@ -327,8 +394,8 @@ export default function ProfilePage() {
               <div style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '16px 14px', background: '#fff', borderRadius: 14, border: '1.5px solid #EDE9FF', cursor: 'pointer' }}>
                 <span style={{ fontSize: 28 }}>📄</span>
                 <div style={{ flex: 1 }}>
-                  <p style={{ fontSize: 15, fontWeight: 700, color: '#1A1240', marginBottom: 2 }}>根据简历匹配</p>
-                  <p style={{ fontSize: 12, color: '#9B8EC4' }}>上传简历 · AI提取关键词 · 智能匹配</p>
+                  <p style={{ fontSize: 15, fontWeight: 700, color: '#1A1240', marginBottom: 2 }}>{t.resumeMatch}</p>
+                  <p style={{ fontSize: 12, color: '#9B8EC4' }}>{t.resumeMatchSub}</p>
                 </div>
                 <span style={{ color: '#9B8EC4', fontSize: 18 }}>→</span>
               </div>
@@ -343,13 +410,13 @@ export default function ProfilePage() {
           onClick={() => router.push('/student/quiz')}
           style={{ flex: 1, padding: '13px 0', borderRadius: 12, border: '1.5px solid #534AB7', background: '#F5F3FF', color: '#534AB7', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}
         >
-          开始匹配
+          {t.startMatch}
         </button>
         <button
           onClick={save}
           style={{ flex: 2, padding: '13px 0', borderRadius: 12, border: 'none', background: '#534AB7', color: '#fff', fontSize: 14, fontWeight: 700, cursor: 'pointer' }}
         >
-          {savedMsg || '保存资料'}
+          {savedMsg || t.save}
         </button>
       </div>
     </div>

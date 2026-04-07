@@ -4,6 +4,7 @@ export const mockClubs: Club[] = [
   {
     id: '1',
     name: '戏剧社',
+    nameEn: 'Drama Club',
     category: '文艺',
     president: '林思妤',
     presidentContact: 'linsiyu@drama.edu.cn',
@@ -57,6 +58,7 @@ export const mockClubs: Club[] = [
   {
     id: '2',
     name: '摄影协会',
+    nameEn: 'Photography Society',
     category: '文艺',
     president: '陈宇航',
     presidentContact: 'chenyuhang_photo',
@@ -110,6 +112,7 @@ export const mockClubs: Club[] = [
   {
     id: '3',
     name: '编程俱乐部',
+    nameEn: 'Coding Club',
     category: '科技',
     president: '张明轩',
     presidentContact: 'zhangmx@cs.edu.cn',
@@ -163,6 +166,7 @@ export const mockClubs: Club[] = [
   {
     id: '4',
     name: '篮球队',
+    nameEn: 'Basketball Team',
     category: '体育',
     president: '王俊博',
     presidentContact: 'wangjunbo_bb',
@@ -216,6 +220,7 @@ export const mockClubs: Club[] = [
   {
     id: '5',
     name: '辩论社',
+    nameEn: 'Debate Society',
     category: '学术',
     president: '刘雅琪',
     presidentContact: 'liu_yaqi@debate.edu.cn',

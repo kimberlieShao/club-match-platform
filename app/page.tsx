@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useLanguage } from '@/lib/i18n';
+import Navbar from '@/components/shared/Navbar';
 
 const STAT_VALUES = ['52', '3,800+', '91%'];
 
@@ -40,6 +41,7 @@ export default function Home() {
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-[#EDE9FF] to-[#F5F3FF] flex flex-col px-4">
+      <Navbar title="" />
       {/* Top bar */}
       <div className="flex items-center justify-between pt-10 pb-2">
         <div className="flex items-center gap-2">

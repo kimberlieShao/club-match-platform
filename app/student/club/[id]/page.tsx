@@ -16,6 +16,15 @@ const applyText = {
     reason: '申请理由', reasonPlaceholder: '说说你为什么想加入这个社团...',
     noResume: '未上传简历（可在个人资料页上传）',
     submitBtn: '一键发送申请 →',
+    fieldName: '姓名', fieldStudentId: '学号', fieldMajor: '专业', fieldGrade: '年级',
+    successTitle: '申请已提交！',
+    successBody1: '我们已收到你对',
+    successBody2: '的申请',
+    successBody3: '预计3个工作日内回复',
+    viewApps: '查看我的申请 →',
+    keepExploring: '继续看其他社团 →',
+    aiWriting: '生成中…', aiWrite: '✨ AI 帮我写',
+    uploadedResume: '已上传的简历',
   },
   en: {
     title: 'Apply to Join',
@@ -25,6 +34,15 @@ const applyText = {
     reasonPlaceholder: "Tell us why you'd be a great fit...",
     noResume: 'No resume uploaded (add one in your profile)',
     submitBtn: 'Submit Application →',
+    fieldName: 'Name', fieldStudentId: 'Student ID', fieldMajor: 'Major', fieldGrade: 'Year',
+    successTitle: 'Application Submitted!',
+    successBody1: "We've received your application to",
+    successBody2: '',
+    successBody3: 'Usually hear back within 3 business days',
+    viewApps: 'View My Applications →',
+    keepExploring: 'Keep Exploring →',
+    aiWriting: 'Generating…', aiWrite: '✨ AI Write for Me',
+    uploadedResume: 'Uploaded resume',
   },
 };
 
@@ -197,7 +215,7 @@ export default function ClubDetailPage({ params }: { params: Promise<{ id: strin
       const appliedAt = new Date().toISOString();
       const apps = JSON.parse(localStorage.getItem('myApplications') || '[]');
       apps.push({
-        clubName: club.name, clubId: club.id,
+        clubName: club.name, clubNameEn: club.nameEn ?? club.name, clubId: club.id,
         appliedAt,
         status: '待审核',
         aiSummary: storedProfile.aiStrengthSummary || '',
@@ -232,12 +250,12 @@ export default function ClubDetailPage({ params }: { params: Promise<{ id: strin
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#EDE9FF] to-[#F5F3FF] flex flex-col">
-      <Navbar title={club.name} />
+      <Navbar title={language === 'en' ? (club.nameEn ?? club.name) : club.name} />
 
       <main className="flex-1 pb-10">
         {/* Hero Banner */}
         <div className="bg-[#534AB7] px-4 pt-6 pb-12">
-          <h1 className="text-3xl font-bold text-white">{club.name}</h1>
+          <h1 className="text-3xl font-bold text-white">{language === 'en' ? (club.nameEn ?? club.name) : club.name}</h1>
           <p className="text-purple-200 text-sm mt-1">
             {club.category} · {club.memberCount}{language === 'en' ? ` ${t.members}` : t.members}
           </p>
@@ -323,7 +341,9 @@ export default function ClubDetailPage({ params }: { params: Promise<{ id: strin
                         <span className="text-xs bg-green-50 text-green-700 border border-green-200 px-2 py-0.5 rounded-full">{t.verifiedMember}</span>
                       )}
                       {review.enrollYear && (
-                        <span className="text-xs text-[#9B8EC4]">{review.enrollYear}届成员</span>
+                        <span className="text-xs text-[#9B8EC4]">
+                          {language === 'en' ? `Class of ${review.enrollYear}` : `${review.enrollYear}届成员`}
+                        </span>
                       )}
                     </div>
                     <span className="text-[#534AB7] font-semibold text-sm">★ {avgRating(review.ratings)}</span>
@@ -488,10 +508,10 @@ export default function ClubDetailPage({ params }: { params: Promise<{ id: strin
                 >
                   <span className="text-green-500 text-4xl font-bold">✓</span>
                 </div>
-                <p className="font-bold text-[#1A1240] text-xl text-center mb-2">申请已提交！</p>
+                <p className="font-bold text-[#1A1240] text-xl text-center mb-2">{at.successTitle}</p>
                 <p className="text-[#6B5FA6] text-sm text-center leading-relaxed mb-8">
-                  我们已收到你对 <span className="font-medium text-[#534AB7]">{club!.name}</span> 的申请<br />
-                  预计3个工作日内回复
+                  {at.successBody1} <span className="font-medium text-[#534AB7]">{language === 'en' ? (club!.nameEn ?? club!.name) : club!.name}</span>{at.successBody2 && ` ${at.successBody2}`}<br />
+                  {at.successBody3}
                 </p>
                 <div className="flex gap-3 w-full">
                   <button
@@ -499,20 +519,20 @@ export default function ClubDetailPage({ params }: { params: Promise<{ id: strin
                     className="flex-1 py-3 rounded-2xl border font-semibold text-sm text-[#534AB7]"
                     style={{ borderColor: '#534AB7' }}
                   >
-                    查看我的申请 →
+                    {at.viewApps}
                   </button>
                   <button
                     onClick={() => { setShowApplyModal(false); router.push('/student/recommendations'); }}
                     className="flex-1 py-3 rounded-2xl bg-[#534AB7] text-white font-semibold text-sm"
                   >
-                    继续看其他社团 →
+                    {at.keepExploring}
                   </button>
                 </div>
               </div>
             ) : (
               <>
                 <div className="flex items-center justify-between mb-5">
-                  <h3 className="font-bold text-[#1A1240] text-lg">{at.title} · {club.name}</h3>
+                  <h3 className="font-bold text-[#1A1240] text-lg">{at.title} · {language === 'en' ? (club.nameEn ?? club.name) : club.name}</h3>
                   <button onClick={() => setShowApplyModal(false)} className="text-[#9B8EC4] text-2xl leading-none">×</button>
                 </div>
 
@@ -520,13 +540,13 @@ export default function ClubDetailPage({ params }: { params: Promise<{ id: strin
                 <div className="bg-[#F5F3FF] rounded-2xl p-4 mb-5">
                   <p className="text-xs text-[#9B8EC4] font-semibold mb-3 uppercase tracking-wide">{at.autoFill}</p>
                   <div className="grid grid-cols-2 gap-y-2 text-sm">
-                    <span className="text-[#9B8EC4]">姓名</span>
+                    <span className="text-[#9B8EC4]">{at.fieldName}</span>
                     <span className="text-[#1A1240] font-medium">{storedProfile.name || '—'}</span>
-                    <span className="text-[#9B8EC4]">学号</span>
+                    <span className="text-[#9B8EC4]">{at.fieldStudentId}</span>
                     <span className="text-[#1A1240] font-medium">{storedProfile.studentId || '—'}</span>
-                    <span className="text-[#9B8EC4]">专业</span>
+                    <span className="text-[#9B8EC4]">{at.fieldMajor}</span>
                     <span className="text-[#1A1240] font-medium">{storedProfile.major || '—'}</span>
-                    <span className="text-[#9B8EC4]">年级</span>
+                    <span className="text-[#9B8EC4]">{at.fieldGrade}</span>
                     <span className="text-[#1A1240] font-medium">{storedProfile.grade || '—'}</span>
                   </div>
                 </div>
@@ -566,7 +586,7 @@ export default function ClubDetailPage({ params }: { params: Promise<{ id: strin
                       disabled={applyCopilotLoading}
                       className="text-xs bg-[#F5F3FF] text-[#534AB7] border border-[#C9C0F0] px-2.5 py-1 rounded-lg font-semibold"
                     >
-                      {applyCopilotLoading ? '生成中…' : '✨ AI 帮我写'}
+                      {applyCopilotLoading ? at.aiWriting : at.aiWrite}
                     </button>
                   </div>
                   <textarea
@@ -583,7 +603,7 @@ export default function ClubDetailPage({ params }: { params: Promise<{ id: strin
                   <span className="text-xl">📄</span>
                   <div className="flex-1 text-sm">
                     {storedProfile.resumeFileName
-                      ? <><p className="font-medium text-[#1A1240]">{storedProfile.resumeFileName}</p><p className="text-[#9B8EC4] text-xs">已上传的简历</p></>
+                      ? <><p className="font-medium text-[#1A1240]">{storedProfile.resumeFileName}</p><p className="text-[#9B8EC4] text-xs">{at.uploadedResume}</p></>
                       : <p className="text-[#9B8EC4]">{at.noResume}</p>
                     }
                   </div>

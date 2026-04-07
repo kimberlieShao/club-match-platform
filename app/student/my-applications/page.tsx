@@ -7,6 +7,7 @@ import { useLanguage } from '@/lib/i18n';
 
 interface Application {
   clubName: string;
+  clubNameEn?: string;
   clubId: string;
   appliedAt: string;
   status: '待审核' | '已通过' | '已拒绝';
@@ -43,6 +44,7 @@ const text = {
     confirmWithdraw2: '的申请？撤回后不可恢复',
     confirm: '确认撤回', cancel: '取消',
     empty: '还没有申请记录，去发现社团吧',
+    emptyFiltered: '暂无此状态的申请',
     emptyBtn: '去看看 →',
     appliedAt: '提交申请',
     viewClub: '查看社团 →',
@@ -59,6 +61,7 @@ const text = {
     confirmWithdraw2: '? This cannot be undone.',
     confirm: 'Confirm', cancel: 'Cancel',
     empty: "No applications yet — go find your club!",
+    emptyFiltered: 'No applications with this status',
     emptyBtn: 'Explore clubs →',
     appliedAt: 'Applied',
     viewClub: 'View Club →',
@@ -137,7 +140,7 @@ export default function MyApplicationsPage() {
           <div className="flex flex-col items-center justify-center py-20 text-center">
             <div className="text-5xl mb-4">📭</div>
             <p className="text-[#6B5FA6] font-medium mb-1">
-              {tab === '全部' ? t.empty : `暂无${statusLabel[tab]}的申请`}
+              {tab === '全部' ? t.empty : t.emptyFiltered}
             </p>
             {tab === '全部' && (
               <Link
@@ -171,7 +174,7 @@ export default function MyApplicationsPage() {
                       {/* Card main */}
                       <div className="p-4">
                         <div className="flex items-start justify-between gap-2 mb-1">
-                          <p className="font-semibold text-[#1A1240] text-base">{app.clubName}</p>
+                          <p className="font-semibold text-[#1A1240] text-base">{language === 'en' ? (app.clubNameEn ?? app.clubName) : app.clubName}</p>
                           <span
                             className="text-xs px-2 py-0.5 rounded-full font-medium shrink-0"
                             style={{ background: style.bg, color: style.color }}
@@ -193,7 +196,7 @@ export default function MyApplicationsPage() {
                         {isConfirming && (
                           <div className="bg-red-50 border border-red-200 rounded-xl p-3 mb-3">
                             <p className="text-sm text-red-700 mb-3">
-                              {t.confirmWithdraw} <strong>{app.clubName}</strong>{t.confirmWithdraw2}
+                              {t.confirmWithdraw} <strong>{language === 'en' ? (app.clubNameEn ?? app.clubName) : app.clubName}</strong>{t.confirmWithdraw2}
                             </p>
                             <div className="flex gap-2">
                               <button
