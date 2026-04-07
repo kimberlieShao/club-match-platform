@@ -4,6 +4,7 @@ import { useState, useMemo } from 'react';
 import Link from 'next/link';
 import { mockClubs } from '@/lib/mockData';
 import Navbar from '@/components/shared/Navbar';
+import { useLanguage } from '@/lib/i18n';
 
 const CATEGORIES = ['全部', '文艺', '体育', '学术', '公益', '科技'];
 
@@ -16,6 +17,7 @@ const categoryColors: Record<string, string> = {
 };
 
 export default function AllClubsPage() {
+  const { language } = useLanguage();
   const [search, setSearch] = useState('');
   const [activeCategory, setActiveCategory] = useState('全部');
 
@@ -25,6 +27,7 @@ export default function AllClubsPage() {
       const matchesSearch =
         !search.trim() ||
         club.name.includes(search) ||
+        (club.nameEn ?? '').toLowerCase().includes(search.toLowerCase()) ||
         club.description.includes(search) ||
         club.tags.some((t) => t.includes(search));
       return matchesCategory && matchesSearch;
@@ -78,7 +81,7 @@ export default function AllClubsPage() {
                   </span>
                 </div>
 
-                <p className="text-[#6B5FA6] text-xs leading-relaxed mb-3 line-clamp-2">{club.description}</p>
+                <p className="text-[#6B5FA6] text-xs leading-relaxed mb-3 line-clamp-2">{language === 'en' ? (club.descriptionEn ?? club.description) : club.description}</p>
 
                 <div className="flex flex-wrap gap-1 mb-3">
                   {club.tags.slice(0, 3).map((tag) => (

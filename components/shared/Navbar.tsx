@@ -6,9 +6,7 @@ import Link from 'next/link';
 import { useLanguage } from '@/lib/i18n';
 
 interface NavbarProps {
-  /** Legacy single-language title (still works). */
   title?: string;
-  /** Preferred: bilingual titles — Navbar picks based on current language. */
   titleZh?: string;
   titleEn?: string;
 }
@@ -16,13 +14,13 @@ interface NavbarProps {
 export default function Navbar({ title, titleZh, titleEn }: NavbarProps) {
   const router = useRouter();
   const { language, setLanguage } = useLanguage();
-  const [profile, setProfile] = useState<{ name?: string } | null>(null);
+  const [mounted, setMounted] = useState(false);
+  const [profile, setProfile] = useState<{ name?: string; nameEn?: string } | null>(null);
   const [open, setOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
-  const displayTitle = (language === 'en' ? titleEn : titleZh) ?? title ?? '';
-
   useEffect(() => {
+    setMounted(true);
     const raw = localStorage.getItem('studentProfile');
     if (raw) setProfile(JSON.parse(raw));
   }, []);
@@ -36,6 +34,19 @@ export default function Navbar({ title, titleZh, titleEn }: NavbarProps) {
     return () => document.removeEventListener('mousedown', handler);
   }, [open]);
 
+  // Before mount: render a stable skeleton to avoid hydration mismatch
+  if (!mounted) {
+    return (
+      <div className="sticky top-0 z-10 bg-white/80 backdrop-blur-md border-b border-[#F0EEFF] px-4 py-3 flex items-center justify-between">
+        <button className="w-9 h-9 flex items-center justify-center rounded-xl text-[#534AB7] text-lg">←</button>
+        <span className="font-semibold text-[#1A1240] text-base">{titleZh ?? title ?? ''}</span>
+        <div className="w-20" />
+      </div>
+    );
+  }
+
+  const displayTitle = (language === 'en' ? titleEn : titleZh) ?? title ?? '';
+
   const handleLogout = () => {
     localStorage.removeItem('studentProfile');
     setProfile(null);
@@ -43,7 +54,15 @@ export default function Navbar({ title, titleZh, titleEn }: NavbarProps) {
     window.location.reload();
   };
 
-  const initial = profile?.name ? profile.name[0] : '';
+  // Last-name initial: for space-separated names take the last token (Western surname),
+  // for single-word names (Chinese) take first character.
+  const initial = (() => {
+    if (!profile?.name) return '';
+    const src = profile.nameEn?.trim() || profile.name;
+    const parts = src.split(/\s+/).filter(Boolean);
+    const surname = parts.length > 1 ? parts[parts.length - 1] : parts[0];
+    return surname[0].toUpperCase();
+  })();
 
   return (
     <div className="sticky top-0 z-10 bg-white/80 backdrop-blur-md border-b border-[#F0EEFF] px-4 py-3 flex items-center justify-between">
@@ -58,19 +77,14 @@ export default function Navbar({ title, titleZh, titleEn }: NavbarProps) {
       {/* Center: title */}
       <span className="font-semibold text-[#1A1240] text-base">{displayTitle}</span>
 
-      {/* Right: language toggle · bell · avatar */}
+      {/* Right: language toggle · avatar */}
       <div className="flex items-center gap-1.5">
-        {/* Language toggle */}
+        {/* Language toggle — shows the TARGET language (what you'd switch to) */}
         <button
           onClick={() => setLanguage(language === 'zh' ? 'en' : 'zh')}
           className="text-xs font-semibold px-2 py-1 rounded-lg border border-[#534AB7] text-[#534AB7] hover:bg-[#F0EEFF] transition-colors"
         >
           {language === 'zh' ? 'EN' : '中文'}
-        </button>
-
-        {/* Bell */}
-        <button className="w-9 h-9 flex items-center justify-center rounded-xl hover:bg-[#F0EEFF] transition-colors text-[#534AB7] text-base">
-          🔔
         </button>
 
         {/* Avatar + dropdown */}
@@ -100,7 +114,9 @@ export default function Navbar({ title, titleZh, titleEn }: NavbarProps) {
               {profile ? (
                 <>
                   <div className="px-4 py-2">
-                    <p className="text-sm font-semibold text-[#1A1240] truncate">{profile.name}</p>
+                    <p className="text-sm font-semibold text-[#1A1240] truncate">
+                      {language === 'en' && profile.nameEn ? profile.nameEn : profile.name}
+                    </p>
                   </div>
                   <div className="border-t border-[#F0EEFF] my-0.5" />
                   <Link

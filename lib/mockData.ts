@@ -9,6 +9,7 @@ export const mockClubs: Club[] = [
     president: '林思妤',
     presidentContact: 'linsiyu@drama.edu.cn',
     description: '我们是一个充满激情的戏剧表演团体，致力于舞台艺术的探索与创新。成员来自各专业，共同排练并呈现原创或改编剧目。',
+    descriptionEn: 'A passionate drama performance group dedicated to exploring and innovating stage arts. Members from all majors come together to rehearse and perform original or adapted plays.',
     tags: ['表演', '创作', '舞台', '剧本', '团队合作'],
     memberCount: 45,
     weeklyHours: 6,
@@ -30,9 +31,9 @@ export const mockClubs: Club[] = [
       douyin: 'https://douyin.com/drama-club',
     },
     activities: [
-      { id: 'a1', title: '年度大戏《等待戈多》', date: '2024-05-15', description: '改编自贝克特经典荒诞剧，演出历时3天，观众超500人', participants: 20 },
-      { id: 'a2', title: '即兴戏剧工作坊', date: '2023-11-20', description: '邀请专业导演带领成员进行即兴表演训练', participants: 30 },
-      { id: 'a3', title: '校际戏剧节金奖', date: '2022-12-10', description: '参加省级校际戏剧节并荣获最佳剧目金奖', participants: 15 },
+      { id: 'a1', title: '年度大戏《等待戈多》', titleEn: 'Annual Production: Waiting for Godot', date: '2024-05-15', description: '改编自贝克特经典荒诞剧，演出历时3天，观众超500人', descriptionEn: "An adaptation of Beckett's classic absurdist play, running 3 days with over 500 audience members.", participants: 20 },
+      { id: 'a2', title: '即兴戏剧工作坊', titleEn: 'Improv Theater Workshop', date: '2023-11-20', description: '邀请专业导演带领成员进行即兴表演训练', descriptionEn: 'A professional director led members through intensive improvisation training.', participants: 30 },
+      { id: 'a3', title: '校际戏剧节金奖', titleEn: 'Inter-College Drama Festival — Gold Award', date: '2022-12-10', description: '参加省级校际戏剧节并荣获最佳剧目金奖', descriptionEn: 'Won Best Production at the provincial inter-college drama festival.', participants: 15 },
     ],
     reviews: [
       {
@@ -63,6 +64,7 @@ export const mockClubs: Club[] = [
     president: '陈宇航',
     presidentContact: 'chenyuhang_photo',
     description: '用镜头记录生活，探索光影之美。我们定期举办摄影课程、外拍活动和展览，欢迎所有热爱摄影的同学。',
+    descriptionEn: 'We use our lenses to capture life and explore the beauty of light. Regular photography courses, outdoor shoots, and exhibitions. All shutterbugs welcome.',
     tags: ['摄影', '后期', '展览', '创作', '风景'],
     memberCount: 62,
     weeklyHours: 3,
@@ -84,9 +86,9 @@ export const mockClubs: Club[] = [
       weibo: 'https://weibo.com/photo-club',
     },
     activities: [
-      { id: 'a4', title: '年度摄影展「城市脉搏」', date: '2024-04-20', description: '展出会员优秀作品120余幅，吸引观展人数800+', participants: 50 },
-      { id: 'a5', title: '夜景摄影外拍活动', date: '2023-10-05', description: '前往城市地标进行集体夜景拍摄，并现场教学长曝光技巧', participants: 25 },
-      { id: 'a6', title: 'Lightroom后期修图工作坊', date: '2022-09-18', description: '邀请摄影师讲解专业后期处理技术', participants: 40 },
+      { id: 'a4', title: '年度摄影展「城市脉搏」', titleEn: 'Annual Exhibition: City Pulse', date: '2024-04-20', description: '展出会员优秀作品120余幅，吸引观展人数800+', descriptionEn: 'Featured 120+ member works, attracting over 800 visitors.', participants: 50 },
+      { id: 'a5', title: '夜景摄影外拍活动', titleEn: 'Night Photography Shoot', date: '2023-10-05', description: '前往城市地标进行集体夜景拍摄，并现场教学长曝光技巧', descriptionEn: 'Group shoot at city landmarks with on-site long-exposure technique teaching.', participants: 25 },
+      { id: 'a6', title: 'Lightroom后期修图工作坊', titleEn: 'Lightroom Editing Workshop', date: '2022-09-18', description: '邀请摄影师讲解专业后期处理技术', descriptionEn: 'A professional photographer shared advanced post-processing techniques.', participants: 40 },
     ],
     reviews: [
       {
@@ -117,6 +119,7 @@ export const mockClubs: Club[] = [
     president: '张明轩',
     presidentContact: 'zhangmx@cs.edu.cn',
     description: '我们热爱代码，热爱创造。从算法竞赛到项目开发，从Web到AI，这里有最前沿的技术探讨和最友好的学习社区。',
+    descriptionEn: 'We build things with code. From algorithms to apps, we learn by doing. Weekly hackathons, project showcases, and tech talks.',
     tags: ['编程', '算法', 'AI', '项目开发', '竞赛', '开源'],
     memberCount: 80,
     weeklyHours: 5,
@@ -138,9 +141,9 @@ export const mockClubs: Club[] = [
       weibo: 'https://weibo.com/code-club',
     },
     activities: [
-      { id: 'a7', title: '24小时黑客马拉松', date: '2024-03-22', description: '120名参赛者组队开发创新项目，主题为「AI+校园生活」', participants: 120 },
-      { id: 'a8', title: 'ACM校内选拔赛', date: '2023-11-11', description: '算法竞赛校内选拔，前三名代表学校参加省级比赛', participants: 60 },
-      { id: 'a9', title: 'LLM应用开发研讨会', date: '2022-12-03', description: '探讨大语言模型在实际项目中的应用，分享开发经验', participants: 45 },
+      { id: 'a7', title: '24小时黑客马拉松', titleEn: '24-Hour Hackathon', date: '2024-03-22', description: '120名参赛者组队开发创新项目，主题为「AI+校园生活」', descriptionEn: '120 participants formed teams to build innovative projects on the theme "AI + Campus Life".', participants: 120 },
+      { id: 'a8', title: 'ACM校内选拔赛', titleEn: 'ACM Campus Qualifier', date: '2023-11-11', description: '算法竞赛校内选拔，前三名代表学校参加省级比赛', descriptionEn: 'Internal algorithm competition; top 3 represented the school at the provincial contest.', participants: 60 },
+      { id: 'a9', title: 'LLM应用开发研讨会', titleEn: 'LLM Application Dev Summit', date: '2022-12-03', description: '探讨大语言模型在实际项目中的应用，分享开发经验', descriptionEn: 'Explored large language model applications in real projects and shared development experience.', participants: 45 },
     ],
     reviews: [
       {
@@ -171,6 +174,7 @@ export const mockClubs: Club[] = [
     president: '王俊博',
     presidentContact: 'wangjunbo_bb',
     description: '我们不只是打篮球，更是在培养团队精神和拼搏意志。队内训练科学系统，每年参加多项校际联赛，欢迎有激情的球员加入。',
+    descriptionEn: 'More than just basketball — we build teamwork and resilience. Scientific training system, competing in inter-college leagues every year.',
     tags: ['篮球', '团队', '竞技', '训练', '联赛'],
     memberCount: 30,
     weeklyHours: 8,
@@ -192,9 +196,9 @@ export const mockClubs: Club[] = [
       weibo: 'https://weibo.com/basketball-team',
     },
     activities: [
-      { id: 'a10', title: '校际篮球联赛季军', date: '2024-05-30', description: '代表学院参加全校联赛，历经12场激烈角逐获得季军', participants: 15 },
-      { id: 'a11', title: '三人篮球街头赛', date: '2023-09-24', description: '组织校内3v3街球大赛，16支队伍参与，现场氛围热烈', participants: 64 },
-      { id: 'a12', title: '篮球夏令营', date: '2022-07-15', description: '邀请专业教练为成员进行为期一周的集训', participants: 25 },
+      { id: 'a10', title: '校际篮球联赛季军', titleEn: 'Inter-College Basketball League — 3rd Place', date: '2024-05-30', description: '代表学院参加全校联赛，历经12场激烈角逐获得季军', descriptionEn: 'Competed in 12 intense games across the school-wide league, finishing third.', participants: 15 },
+      { id: 'a11', title: '三人篮球街头赛', titleEn: '3-on-3 Street Basketball Tournament', date: '2023-09-24', description: '组织校内3v3街球大赛，16支队伍参与，现场氛围热烈', descriptionEn: 'Organized a 3v3 campus tournament with 16 teams in an electric atmosphere.', participants: 64 },
+      { id: 'a12', title: '篮球夏令营', titleEn: 'Basketball Summer Camp', date: '2022-07-15', description: '邀请专业教练为成员进行为期一周的集训', descriptionEn: 'Professional coaches ran an intensive week-long training camp for members.', participants: 25 },
     ],
     reviews: [
       {
@@ -225,6 +229,7 @@ export const mockClubs: Club[] = [
     president: '刘雅琪',
     presidentContact: 'liu_yaqi@debate.edu.cn',
     description: '思维碰撞，言辞交锋。我们在辩论中磨砺逻辑，在争论中寻找真理。无论你是辩论新手还是经验丰富的辩手，这里都欢迎你。',
+    descriptionEn: 'We argue for fun (and to get better at thinking). Weekly debate rounds, critical thinking workshops, and regional competitions.',
     tags: ['辩论', '逻辑思维', '公共演讲', '批判性思维', '竞赛'],
     memberCount: 35,
     weeklyHours: 4,
@@ -245,9 +250,9 @@ export const mockClubs: Club[] = [
       xiaohongshu: 'https://xiaohongshu.com/debate-club',
     },
     activities: [
-      { id: 'a13', title: '省级高校辩论联赛亚军', date: '2024-06-08', description: '参加省内高校辩论联赛，经历激烈角逐获得亚军', participants: 8 },
-      { id: 'a14', title: '年度校内辩论赛', date: '2023-12-01', description: '组织全校20支队伍参与的辩论大赛，主题为科技与人文', participants: 80 },
-      { id: 'a15', title: 'TED演讲训练营', date: '2022-10-22', description: '邀请演讲教练进行公共演讲技能专项训练', participants: 30 },
+      { id: 'a13', title: '省级高校辩论联赛亚军', titleEn: 'Provincial College Debate League — Runner-up', date: '2024-06-08', description: '参加省内高校辩论联赛，经历激烈角逐获得亚军', descriptionEn: 'Competed in the provincial inter-college debate league and finished runner-up.', participants: 8 },
+      { id: 'a14', title: '年度校内辩论赛', titleEn: 'Annual Campus Debate Championship', date: '2023-12-01', description: '组织全校20支队伍参与的辩论大赛，主题为科技与人文', descriptionEn: 'Organized a school-wide tournament with 20 teams on the theme of Technology & Humanities.', participants: 80 },
+      { id: 'a15', title: 'TED演讲训练营', titleEn: 'TED Talk Training Camp', date: '2022-10-22', description: '邀请演讲教练进行公共演讲技能专项训练', descriptionEn: 'A speech coach delivered a focused workshop on public speaking skills.', participants: 30 },
     ],
     reviews: [
       {

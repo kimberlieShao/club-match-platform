@@ -14,6 +14,7 @@ const text = {
     major: '专业', majorPlaceholder: '例：计算机科学',
     grade: '年级', grades: ['大一', '大二', '大三', '大四', '研究生'],
     email: '邮箱', emailPlaceholder: 'school@edu.cn',
+    nameEn: '英文名/拼音（选填）', nameEnPlaceholder: '例：Xu Xu',
     password: '密码', passwordPlaceholder: '至少6位',
     createBtn: '创建账号 →', loginBtn: '登录 →',
     terms: '登录即代表你同意 ClubMatch 用户协议',
@@ -26,6 +27,7 @@ const text = {
     major: 'Major', majorPlaceholder: 'e.g. Computer Science',
     grade: 'Year', grades: ['Freshman', 'Sophomore', 'Junior', 'Senior', 'Graduate Student'],
     email: 'Email', emailPlaceholder: 'your@university.edu',
+    nameEn: 'English Name (optional)', nameEnPlaceholder: 'e.g. Xu Xu',
     password: 'Password', passwordPlaceholder: 'At least 6 characters',
     createBtn: 'Create Account →', loginBtn: 'Sign In →',
     terms: 'By continuing, you agree to the ClubMatch Terms of Service',
@@ -53,6 +55,7 @@ export default function LoginPage() {
 
   // Register fields
   const [name, setName]         = useState('');
+  const [nameEn, setNameEn]     = useState('');
   const [sid, setSid]           = useState('');
   const [major, setMajor]       = useState('');
   const [grade, setGrade]       = useState(t.grades[0]);
@@ -64,7 +67,7 @@ export default function LoginPage() {
   const [loginPassword, setLoginPassword] = useState('');
 
   function handleRegister() {
-    const profile = { name, studentId: sid, major, grade, email, password, mbti: '', zodiac: '', bio: '', aiStrengthSummary: '', resumeFileName: '', resumeFileSize: '', avatarColor: '#534AB7' };
+    const profile = { name, nameEn, studentId: sid, major, grade, email, password, mbti: '', zodiac: '', bio: '', aiStrengthSummary: '', resumeFileName: '', resumeFileSize: '', avatarColor: '#534AB7' };
     localStorage.setItem('studentProfile', JSON.stringify(profile));
     router.push('/student/profile');
   }
@@ -119,6 +122,10 @@ export default function LoginPage() {
             <div>
               <label style={labelStyle}>{t.name}</label>
               <input style={inputStyle} placeholder={t.namePlaceholder} value={name} onChange={(e) => setName(e.target.value)} />
+            </div>
+            <div>
+              <label style={labelStyle}>{t.nameEn}</label>
+              <input style={inputStyle} placeholder={t.nameEnPlaceholder} value={nameEn} onChange={(e) => setNameEn(e.target.value)} />
             </div>
             <div>
               <label style={labelStyle}>{t.studentId}</label>

@@ -295,7 +295,7 @@ export default function ClubDetailPage({ params }: { params: Promise<{ id: strin
           {/* Description */}
           <div className="bg-white rounded-2xl p-5 shadow-sm mb-4">
             <h2 className="font-semibold text-[#1A1240] mb-2">{t.aboutUs}</h2>
-            <p className="text-[#4A4A6A] text-sm leading-relaxed">{club.description}</p>
+            <p className="text-[#4A4A6A] text-sm leading-relaxed">{language === 'en' ? (club.descriptionEn ?? club.description) : club.description}</p>
             <div className="flex flex-wrap gap-1.5 mt-3">
               {club.tags.map((tag) => (
                 <span key={tag} className="text-xs bg-[#EDE9FF] text-[#534AB7] px-2 py-1 rounded-full">{tag}</span>
@@ -311,9 +311,9 @@ export default function ClubDetailPage({ params }: { params: Promise<{ id: strin
                 <div key={act.id} className="flex gap-3">
                   <div className="w-1 bg-[#534AB7] rounded-full shrink-0" />
                   <div>
-                    <p className="font-medium text-[#1A1240] text-sm">{act.title}</p>
-                    <p className="text-[#9B8EC4] text-xs">{act.date} · {act.participants}人参与</p>
-                    <p className="text-[#4A4A6A] text-xs mt-0.5">{act.description}</p>
+                    <p className="font-medium text-[#1A1240] text-sm">{language === 'en' ? (act.titleEn ?? act.title) : act.title}</p>
+                    <p className="text-[#9B8EC4] text-xs">{act.date} · {language === 'en' ? `${act.participants} participants` : `${act.participants}人参与`}</p>
+                    <p className="text-[#4A4A6A] text-xs mt-0.5">{language === 'en' ? (act.descriptionEn ?? act.description) : act.description}</p>
                   </div>
                 </div>
               ))}

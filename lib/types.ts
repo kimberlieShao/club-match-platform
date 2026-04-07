@@ -20,8 +20,10 @@ export interface Review {
 export interface Activity {
   id: string;
   title: string;
+  titleEn?: string;
   date: string;
   description: string;
+  descriptionEn?: string;
   participants: number;
 }
 
@@ -50,6 +52,7 @@ export interface Club {
   nameEn?: string;
   category: '文艺' | '体育' | '学术' | '公益' | '科技';
   description: string;
+  descriptionEn?: string;
   tags: string[];
   memberCount: number;
   weeklyHours: number;
