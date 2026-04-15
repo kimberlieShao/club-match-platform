@@ -70,9 +70,12 @@ const text = {
   },
 };
 
-function formatDateTime(iso: string) {
+function formatDateTime(iso: string, lang: string) {
   const d = new Date(iso);
   const pad = (n: number) => String(n).padStart(2, '0');
+  if (lang === 'en') {
+    return `${d.getMonth() + 1}/${d.getDate()} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  }
   return `${d.getMonth() + 1}月${d.getDate()}日 ${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
 
@@ -182,7 +185,7 @@ export default function MyApplicationsPage() {
                             {statusLabel[app.status] ?? app.status}
                           </span>
                         </div>
-                        <p className="text-xs text-[#9B8EC4] mb-2">{formatDateTime(app.appliedAt)} {t.appliedAt}</p>
+                        <p className="text-xs text-[#9B8EC4] mb-2">{formatDateTime(app.appliedAt, language)} {t.appliedAt}</p>
                         {app.status === '待审核' && !isConfirming && (
                           <p className="text-xs text-[#C0B8E0] mb-2">{t.replyTime}</p>
                         )}
@@ -239,7 +242,7 @@ export default function MyApplicationsPage() {
                         <div className="border-t border-[#F0EEFF] px-4 py-3 bg-[#FAFAFF] flex flex-col gap-2.5">
                           <div className="flex gap-2">
                             <span className="text-xs text-[#9B8EC4] w-16 shrink-0">{t.detailTime}</span>
-                            <span className="text-xs text-[#1A1240]">{formatDateTime(app.appliedAt)}</span>
+                            <span className="text-xs text-[#1A1240]">{formatDateTime(app.appliedAt, language)}</span>
                           </div>
                           {app.reason ? (
                             <div className="flex gap-2">

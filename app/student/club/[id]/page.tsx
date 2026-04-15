@@ -46,6 +46,10 @@ const applyText = {
   },
 };
 
+const categoryEn: Record<string, string> = {
+  '文艺': 'Arts', '科技': 'Tech', '体育': 'Sports', '学术': 'Academic', '公益': 'Community',
+};
+
 const text = {
   zh: {
     members: '名成员', hoursPerWeek: '每周投入', rating: '综合评分',
@@ -57,6 +61,33 @@ const text = {
     applyBtn: '申请加入 →', appliedBtn: '已申请，等待审核',
     reviewDims: { vibe: '整体氛围', time: '时间合理', events: '活动质量', leadership: '管理水平', beginner: '新手友好' },
     socialMedia: { wechat: '公众号', xiaohongshu: '小红书', douyin: '抖音', weibo: '微博' },
+    authTitle: '身份验证',
+    authDesc1: '请填写基本信息以验证你的成员资格（信息仅用于验证，不会公开）',
+    authStudentIdLabel: '学号',
+    authStudentIdPlaceholder: '请输入你的学号',
+    authYearLabel: '入社年份',
+    authYearSuffix: '年',
+    authNext: '下一步',
+    authConfirmDesc: '请确认你的成员资格',
+    authConfirmCheck: '我确认曾正式加入该社团满一学期',
+    authConfirmBtn: '进入评价',
+    reviewSuccessTitle: '感谢你的真实评价，已帮助3位同学',
+    reviewSuccessBody: '你的评价将继续帮助更多学弟学妹',
+    reviewPrivacy: '🔒 你的姓名和学号不会被公开，评价将以匿名形式展示',
+    reviewWarmNotice: '💛 温馨提示：评价将帮助学弟学妹做决定，请保持友善理性。恶语伤人心，真诚的评价才最有价值。',
+    reviewDimsTitle: '各维度评分',
+    reviewTextTitle: '文字评价',
+    reviewPlaceholder: '分享你的真实感受，帮助学弟学妹做决定',
+    reviewBadWord: '包含不当词汇，请修改后提交',
+    reviewTooShort: '至少需要20个字',
+    reviewing: '审核中...',
+    submitReview: '提交评价',
+    unknownOption: '未知',
+    applyLoading: '发送中…',
+    moderationFailed: '评价包含不当内容，请修改后重新提交',
+    moderationErrorPrefix: '评价审核未通过：',
+    moderationErrorSuffix: '，请修改后重新提交',
+    appliedOnFn: (m: number, d: number) => `你已于 ${m}月${d}日 提交申请`,
   },
   en: {
     members: 'members', hoursPerWeek: 'hrs/week', rating: 'Rating',
@@ -68,6 +99,33 @@ const text = {
     applyBtn: 'Apply to Join →', appliedBtn: 'Applied — Pending Review',
     reviewDims: { vibe: 'Vibe', time: 'Time Commitment', events: 'Events', leadership: 'Leadership', beginner: 'Beginner Friendly' },
     socialMedia: { wechat: 'WeChat', xiaohongshu: 'Instagram', douyin: 'TikTok', weibo: 'Twitter' },
+    authTitle: 'Verify Membership',
+    authDesc1: 'Enter your details to verify your membership (info stays private)',
+    authStudentIdLabel: 'Student ID',
+    authStudentIdPlaceholder: 'Enter your student ID',
+    authYearLabel: 'Year Joined',
+    authYearSuffix: '',
+    authNext: 'Next',
+    authConfirmDesc: 'Confirm your membership',
+    authConfirmCheck: 'I confirm I was an official member for at least one semester',
+    authConfirmBtn: 'Write Review',
+    reviewSuccessTitle: 'Thanks! Your review has helped 3 students',
+    reviewSuccessBody: 'Your review will keep helping future members',
+    reviewPrivacy: '🔒 Your name and ID stay private — your review is shown anonymously',
+    reviewWarmNotice: '💛 Reminder: your review helps others decide. Please be honest and kind.',
+    reviewDimsTitle: 'Rate each dimension',
+    reviewTextTitle: 'Written Review',
+    reviewPlaceholder: 'Share your honest experience to help others decide',
+    reviewBadWord: 'Contains inappropriate words, please revise before submitting',
+    reviewTooShort: 'At least 20 characters required',
+    reviewing: 'Reviewing...',
+    submitReview: 'Submit Review',
+    unknownOption: 'Unknown',
+    applyLoading: 'Sending…',
+    moderationFailed: 'Review contains inappropriate content, please revise and resubmit',
+    moderationErrorPrefix: 'Review failed moderation: ',
+    moderationErrorSuffix: '. Please revise and try again.',
+    appliedOnFn: (m: number, d: number) => `Applied on ${m}/${d}`,
   },
 };
 
@@ -130,8 +188,10 @@ export default function ClubDetailPage({ params }: { params: Promise<{ id: strin
   const [storedProfile, setStoredProfile]     = useState<Record<string, string>>({});
   const [alreadyApplied, setAlreadyApplied]   = useState<string | null>(null);
 
-  const MBTI_LIST   = ['INTJ','INTP','ENTJ','ENTP','INFJ','INFP','ENFJ','ENFP','ISTJ','ISFJ','ESTJ','ESFJ','ISTP','ISFP','ESTP','ESFP'];
-  const ZODIAC_LIST = ['白羊座','金牛座','双子座','巨蟹座','狮子座','处女座','天秤座','天蝎座','射手座','摩羯座','水瓶座','双鱼座'];
+  const MBTI_LIST      = ['INTJ','INTP','ENTJ','ENTP','INFJ','INFP','ENFJ','ENFP','ISTJ','ISFJ','ESTJ','ESFJ','ISTP','ISFP','ESTP','ESFP'];
+  const ZODIAC_LIST    = ['白羊座','金牛座','双子座','巨蟹座','狮子座','处女座','天秤座','天蝎座','射手座','摩羯座','水瓶座','双鱼座'];
+  const ZODIAC_LIST_EN = ['Aries','Taurus','Gemini','Cancer','Leo','Virgo','Libra','Scorpio','Sagittarius','Capricorn','Aquarius','Pisces'];
+  const zodiacOptions  = language === 'en' ? ZODIAC_LIST_EN : ZODIAC_LIST;
 
   useEffect(() => {
     const raw = localStorage.getItem('studentProfile');
@@ -180,7 +240,7 @@ export default function ClubDetailPage({ params }: { params: Promise<{ id: strin
       });
       const data = await res.json();
       if (!data.pass) {
-        setModerateError(data.reason || '评价包含不当内容，请修改后重新提交');
+        setModerateError(data.reason || t.moderationFailed);
         setModerating(false);
         return;
       }
@@ -232,7 +292,9 @@ export default function ClubDetailPage({ params }: { params: Promise<{ id: strin
   const handleApplyCopilot = async () => {
     setApplyCopilotLoading(true);
     try {
-      const msg = `请帮我写一段约50字的申请理由，说明为什么想加入${club.name}，语气真诚。用户信息：${storedProfile.major || '同学'}，${storedProfile.grade || ''}。`;
+      const msg = language === 'en'
+        ? `Write a ~50-word application statement explaining why I want to join ${club.nameEn ?? club.name}. Tone: sincere. Info: major ${storedProfile.major || 'student'}, year ${storedProfile.grade || ''}.`
+        : `请帮我写一段约50字的申请理由，说明为什么想加入${club.name}，语气真诚。用户信息：${storedProfile.major || '同学'}，${storedProfile.grade || ''}。`;
       const res  = await fetch('/api/chat', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ message: msg, clubId: club.id }) });
       const data = await res.json();
       setApplyReason(data.reply || applyReason);
@@ -257,7 +319,7 @@ export default function ClubDetailPage({ params }: { params: Promise<{ id: strin
         <div className="bg-[#534AB7] px-4 pt-6 pb-12">
           <h1 className="text-3xl font-bold text-white">{language === 'en' ? (club.nameEn ?? club.name) : club.name}</h1>
           <p className="text-purple-200 text-sm mt-1">
-            {club.category} · {club.memberCount}{language === 'en' ? ` ${t.members}` : t.members}
+            {language === 'en' ? (categoryEn[club.category] ?? club.category) : club.category} · {club.memberCount}{language === 'en' ? ` ${t.members}` : t.members}
           </p>
           <div className="flex items-center gap-1 mt-2">
             <span className="text-yellow-300">★</span>
@@ -284,7 +346,7 @@ export default function ClubDetailPage({ params }: { params: Promise<{ id: strin
             {club.president && (
               <div className="border-t border-[#F0EEFF] pt-2.5 flex items-center gap-2">
                 <span className="text-xs text-[#9B8EC4]">{t.president}</span>
-                <span className="text-xs font-medium text-[#1A1240]">{club.president}</span>
+                <span className="text-xs font-medium text-[#1A1240]">{language === 'en' ? (club.presidentEn ?? club.president) : club.president}</span>
                 {club.presidentContact && (
                   <span className="text-xs text-[#9B8EC4] ml-1">{club.presidentContact}</span>
                 )}
@@ -297,7 +359,7 @@ export default function ClubDetailPage({ params }: { params: Promise<{ id: strin
             <h2 className="font-semibold text-[#1A1240] mb-2">{t.aboutUs}</h2>
             <p className="text-[#4A4A6A] text-sm leading-relaxed">{language === 'en' ? (club.descriptionEn ?? club.description) : club.description}</p>
             <div className="flex flex-wrap gap-1.5 mt-3">
-              {club.tags.map((tag) => (
+              {(language === 'en' ? (club.tagsEn ?? club.tags) : club.tags).map((tag) => (
                 <span key={tag} className="text-xs bg-[#EDE9FF] text-[#534AB7] px-2 py-1 rounded-full">{tag}</span>
               ))}
             </div>
@@ -362,7 +424,7 @@ export default function ClubDetailPage({ params }: { params: Promise<{ id: strin
                   </div>
 
                   {/* Content */}
-                  <p className="text-[#4A4A6A] text-sm leading-relaxed mb-2">{review.content}</p>
+                  <p className="text-[#4A4A6A] text-sm leading-relaxed mb-2">{language === 'en' ? (review.contentEn ?? review.content) : review.content}</p>
 
                   {/* Footer */}
                   <div className="flex items-center justify-between">
@@ -407,7 +469,7 @@ export default function ClubDetailPage({ params }: { params: Promise<{ id: strin
           {alreadyApplied ? (
             <div>
               <p className="text-xs text-center text-[#9B8EC4] mb-2">
-                你已于 {(() => { const d = new Date(alreadyApplied); return `${d.getMonth() + 1}月${d.getDate()}日`; })()} 提交申请
+                {(() => { const d = new Date(alreadyApplied!); return t.appliedOnFn(d.getMonth() + 1, d.getDate()); })()}
               </p>
               <button
                 disabled
@@ -432,31 +494,31 @@ export default function ClubDetailPage({ params }: { params: Promise<{ id: strin
         <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-end">
           <div className="bg-white rounded-t-3xl w-full p-6">
             <div className="flex items-center justify-between mb-5">
-              <h3 className="font-bold text-[#1A1240] text-lg">身份验证</h3>
+              <h3 className="font-bold text-[#1A1240] text-lg">{t.authTitle}</h3>
               <button onClick={() => setShowAuthModal(false)} className="text-[#9B8EC4] text-xl">×</button>
             </div>
 
             {authStep === 1 ? (
               <>
-                <p className="text-sm text-[#6B5FA6] mb-4">请填写基本信息以验证你的成员资格（信息仅用于验证，不会公开）</p>
+                <p className="text-sm text-[#6B5FA6] mb-4">{t.authDesc1}</p>
                 <div className="mb-4">
-                  <label className="block text-sm font-medium text-[#4A4A6A] mb-1.5">学号</label>
+                  <label className="block text-sm font-medium text-[#4A4A6A] mb-1.5">{t.authStudentIdLabel}</label>
                   <input
                     value={studentId}
                     onChange={(e) => setStudentId(e.target.value)}
-                    placeholder="请输入你的学号"
+                    placeholder={t.authStudentIdPlaceholder}
                     className="w-full border border-[#E5DEFF] rounded-xl px-4 py-3 text-[#1A1240] focus:outline-none focus:border-[#534AB7]"
                   />
                 </div>
                 <div className="mb-6">
-                  <label className="block text-sm font-medium text-[#4A4A6A] mb-1.5">入社年份</label>
+                  <label className="block text-sm font-medium text-[#4A4A6A] mb-1.5">{t.authYearLabel}</label>
                   <select
                     value={enrollYear}
                     onChange={(e) => setEnrollYear(e.target.value)}
                     className="w-full border border-[#E5DEFF] rounded-xl px-4 py-3 text-[#1A1240] focus:outline-none focus:border-[#534AB7] bg-white"
                   >
                     {[2024, 2023, 2022, 2021, 2020].map((y) => (
-                      <option key={y} value={y}>{y}年</option>
+                      <option key={y} value={y}>{y}{t.authYearSuffix}</option>
                     ))}
                   </select>
                 </div>
@@ -465,12 +527,12 @@ export default function ClubDetailPage({ params }: { params: Promise<{ id: strin
                   disabled={!studentId.trim()}
                   className="w-full py-4 bg-[#534AB7] text-white font-semibold rounded-2xl disabled:opacity-40"
                 >
-                  下一步
+                  {t.authNext}
                 </button>
               </>
             ) : (
               <>
-                <p className="text-sm text-[#6B5FA6] mb-6">请确认你的成员资格</p>
+                <p className="text-sm text-[#6B5FA6] mb-6">{t.authConfirmDesc}</p>
                 <button
                   onClick={() => setConfirmed(!confirmed)}
                   className={`w-full p-4 rounded-2xl border-2 text-left transition-all mb-6 ${
@@ -481,7 +543,7 @@ export default function ClubDetailPage({ params }: { params: Promise<{ id: strin
                     <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 mt-0.5 ${confirmed ? 'bg-[#534AB7] border-[#534AB7]' : 'border-[#C9C0F0]'}`}>
                       {confirmed && <span className="text-white text-xs">✓</span>}
                     </div>
-                    <p className="text-sm text-[#1A1240]">我确认曾正式加入该社团满一学期</p>
+                    <p className="text-sm text-[#1A1240]">{t.authConfirmCheck}</p>
                   </div>
                 </button>
                 <button
@@ -489,7 +551,7 @@ export default function ClubDetailPage({ params }: { params: Promise<{ id: strin
                   disabled={!confirmed}
                   className="w-full py-4 bg-[#534AB7] text-white font-semibold rounded-2xl disabled:opacity-40"
                 >
-                  进入评价
+                  {t.authConfirmBtn}
                 </button>
               </>
             )}
@@ -560,7 +622,7 @@ export default function ClubDetailPage({ params }: { params: Promise<{ id: strin
                       onChange={(e) => setApplyMbti(e.target.value)}
                       className="w-full border border-[#E5DEFF] rounded-xl px-3 py-2.5 text-sm text-[#1A1240] bg-white focus:outline-none focus:border-[#534AB7]"
                     >
-                      <option value="">未知</option>
+                      <option value="">{t.unknownOption}</option>
                       {MBTI_LIST.map((m) => <option key={m}>{m}</option>)}
                     </select>
                   </div>
@@ -571,8 +633,8 @@ export default function ClubDetailPage({ params }: { params: Promise<{ id: strin
                       onChange={(e) => setApplyZodiac(e.target.value)}
                       className="w-full border border-[#E5DEFF] rounded-xl px-3 py-2.5 text-sm text-[#1A1240] bg-white focus:outline-none focus:border-[#534AB7]"
                     >
-                      <option value="">未知</option>
-                      {ZODIAC_LIST.map((z) => <option key={z}>{z}</option>)}
+                      <option value="">{t.unknownOption}</option>
+                      {zodiacOptions.map((z) => <option key={z}>{z}</option>)}
                     </select>
                   </div>
                 </div>
@@ -614,7 +676,7 @@ export default function ClubDetailPage({ params }: { params: Promise<{ id: strin
                   disabled={applyLoading}
                   className="w-full py-4 bg-[#534AB7] text-white font-bold rounded-2xl text-base disabled:opacity-50"
                 >
-                  {applyLoading ? '发送中…' : at.submitBtn}
+                  {applyLoading ? t.applyLoading : at.submitBtn}
                 </button>
               </>
             )}
@@ -629,8 +691,8 @@ export default function ClubDetailPage({ params }: { params: Promise<{ id: strin
             {submitted ? (
               <div className="flex flex-col items-center py-10">
                 <div className="text-5xl mb-4">🎉</div>
-                <p className="font-bold text-[#1A1240] text-xl">感谢你的真实评价，已帮助3位同学</p>
-                <p className="text-[#6B5FA6] text-sm mt-2">你的评价将继续帮助更多学弟学妹</p>
+                <p className="font-bold text-[#1A1240] text-xl">{t.reviewSuccessTitle}</p>
+                <p className="text-[#6B5FA6] text-sm mt-2">{t.reviewSuccessBody}</p>
               </div>
             ) : (
               <>
@@ -640,19 +702,19 @@ export default function ClubDetailPage({ params }: { params: Promise<{ id: strin
                 </div>
 
                 <p className="text-xs text-[#9B8EC4] bg-[#F5F3FF] rounded-xl px-3 py-2 mb-3">
-                  🔒 你的姓名和学号不会被公开，评价将以匿名形式展示
+                  {t.reviewPrivacy}
                 </p>
 
                 {/* Warm notice */}
                 <div className="bg-[#FFFBEB] border border-[#FDE68A] rounded-xl px-3 py-2.5 mb-5">
                   <p className="text-xs text-[#92400E] leading-relaxed">
-                    💛 温馨提示：评价将帮助学弟学妹做决定，请保持友善理性。恶语伤人心，真诚的评价才最有价值。
+                    {t.reviewWarmNotice}
                   </p>
                 </div>
 
                 {/* Star ratings */}
                 <div className="mb-5">
-                  <p className="font-semibold text-[#1A1240] text-sm mb-3">各维度评分</p>
+                  <p className="font-semibold text-[#1A1240] text-sm mb-3">{t.reviewDimsTitle}</p>
                   <div className="flex flex-col gap-3">
                     {RATING_LABELS.map(({ key, label }) => (
                       <div key={key} className="flex items-center gap-3">
@@ -677,7 +739,7 @@ export default function ClubDetailPage({ params }: { params: Promise<{ id: strin
                 {/* Text */}
                 <div className="mb-5">
                   <div className="flex items-center justify-between mb-1.5">
-                    <p className="font-semibold text-[#1A1240] text-sm">文字评价</p>
+                    <p className="font-semibold text-[#1A1240] text-sm">{t.reviewTextTitle}</p>
                     <span className={`text-xs ${reviewText.length > 280 ? 'text-red-500' : 'text-[#9B8EC4]'}`}>
                       {reviewText.length}/300
                     </span>
@@ -686,20 +748,20 @@ export default function ClubDetailPage({ params }: { params: Promise<{ id: strin
                     value={reviewText}
                     onChange={(e) => handleReviewTextChange(e.target.value)}
                     rows={4}
-                    placeholder="分享你的真实感受，帮助学弟学妹做决定"
+                    placeholder={t.reviewPlaceholder}
                     className="w-full border border-[#E5DEFF] rounded-xl px-4 py-3 text-[#1A1240] focus:outline-none focus:border-[#534AB7] resize-none text-sm"
                   />
                   {badWordError && (
-                    <p className="text-xs text-red-500 mt-1">包含不当词汇，请修改后提交</p>
+                    <p className="text-xs text-red-500 mt-1">{t.reviewBadWord}</p>
                   )}
                   {!badWordError && reviewText.length < 20 && reviewText.length > 0 && (
-                    <p className="text-xs text-orange-500 mt-1">至少需要20个字</p>
+                    <p className="text-xs text-orange-500 mt-1">{t.reviewTooShort}</p>
                   )}
                 </div>
 
                 {moderateError && (
                   <div className="mb-4 bg-red-50 border border-red-200 rounded-xl p-3">
-                    <p className="text-red-600 text-sm">⚠️ 评价审核未通过：{moderateError}，请修改后重新提交</p>
+                    <p className="text-red-600 text-sm">⚠️ {t.moderationErrorPrefix}{moderateError}{t.moderationErrorSuffix}</p>
                   </div>
                 )}
 
@@ -708,7 +770,7 @@ export default function ClubDetailPage({ params }: { params: Promise<{ id: strin
                   disabled={reviewText.length < 20 || moderating || badWordError}
                   className="w-full py-4 bg-[#534AB7] text-white font-semibold rounded-2xl disabled:opacity-40"
                 >
-                  {moderating ? '审核中...' : '提交评价'}
+                  {moderating ? t.reviewing : t.submitReview}
                 </button>
               </>
             )}

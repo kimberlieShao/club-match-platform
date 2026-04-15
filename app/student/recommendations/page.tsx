@@ -17,6 +17,10 @@ const categoryColorStyle: Record<string, { background: string; color: string }> 
   公益: { background: '#FFEDD5', color: '#9A3412' },
 };
 
+const categoryEn: Record<string, string> = {
+  '文艺': 'Arts', '科技': 'Tech', '体育': 'Sports', '学术': 'Academic', '公益': 'Community',
+};
+
 const text = {
   zh: {
     title: '为你推荐的社团',
@@ -108,7 +112,7 @@ export default function RecommendationsPage() {
                           ...catStyle,
                         }}
                       >
-                        {result.club.category}
+                        {language === 'en' ? (categoryEn[result.club.category] ?? result.club.category) : result.club.category}
                       </span>
                     </div>
 
@@ -134,12 +138,12 @@ export default function RecommendationsPage() {
                       lineHeight: 1.6,
                     }}
                   >
-                    ✨ {result.reason}
+                    ✨ {language === 'en' ? result.reasonEn : result.reason}
                   </div>
 
                   {/* Tags */}
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 12 }}>
-                    {result.club.tags.slice(0, 4).map((tag, i) => (
+                    {(language === 'en' ? (result.club.tagsEn ?? result.club.tags) : result.club.tags).slice(0, 4).map((tag, i) => (
                       <span
                         key={i}
                         style={{
@@ -154,8 +158,8 @@ export default function RecommendationsPage() {
 
                   {/* Stats */}
                   <div style={{ display: 'flex', gap: 16, fontSize: 12, color: '#9B8EC4' }}>
-                    <span>👥 {result.club.memberCount} 人</span>
-                    <span>⏱️ 每周 {result.club.weeklyHours} 小时</span>
+                    <span>👥 {result.club.memberCount}{language === 'en' ? ' members' : ' 人'}</span>
+                    <span>⏱️ {language === 'en' ? `${result.club.weeklyHours}h/week` : `每周 ${result.club.weeklyHours} 小时`}</span>
                     <span>⭐ {result.club.rating}</span>
                   </div>
                 </div>
