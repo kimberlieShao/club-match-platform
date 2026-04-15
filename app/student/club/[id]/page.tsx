@@ -50,6 +50,10 @@ const categoryEn: Record<string, string> = {
   '文艺': 'Arts', '科技': 'Tech', '体育': 'Sports', '学术': 'Academic', '公益': 'Community',
 };
 
+const GRADE_ZH_TO_EN: Record<string, string> = {
+  '大一': 'Freshman', '大二': 'Sophomore', '大三': 'Junior', '大四': 'Senior', '研究生': 'Graduate',
+};
+
 const text = {
   zh: {
     members: '名成员', hoursPerWeek: '每周投入', rating: '综合评分',
@@ -609,7 +613,11 @@ export default function ClubDetailPage({ params }: { params: Promise<{ id: strin
                     <span className="text-[#9B8EC4]">{at.fieldMajor}</span>
                     <span className="text-[#1A1240] font-medium">{storedProfile.major || '—'}</span>
                     <span className="text-[#9B8EC4]">{at.fieldGrade}</span>
-                    <span className="text-[#1A1240] font-medium">{storedProfile.grade || '—'}</span>
+                    <span className="text-[#1A1240] font-medium">
+                      {storedProfile.grade
+                        ? (language === 'en' ? (GRADE_ZH_TO_EN[storedProfile.grade] ?? storedProfile.grade) : storedProfile.grade)
+                        : '—'}
+                    </span>
                   </div>
                 </div>
 

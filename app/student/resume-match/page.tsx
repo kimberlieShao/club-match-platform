@@ -5,6 +5,7 @@ import Link from 'next/link';
 import Navbar from '@/components/shared/Navbar';
 import { mockClubs } from '@/lib/mockData';
 import { Club } from '@/lib/types';
+import { useLanguage } from '@/lib/i18n';
 
 interface ResumeResult {
   club: Club;
@@ -20,21 +21,66 @@ const categoryColorStyle: Record<string, { background: string; color: string }> 
   公益: { background: '#FFEDD5', color: '#9A3412' },
 };
 
+const categoryEn: Record<string, string> = {
+  '文艺': 'Arts', '科技': 'Tech', '体育': 'Sports', '学术': 'Academic', '公益': 'Community',
+};
+
+const text = {
+  zh: {
+    uploadTitle: '上传简历',
+    uploadDesc: 'AI 将自动提取关键特质，为你匹配最合适的社团',
+    uploadBtn: '点击上传简历（PDF）',
+    analyzeBtn: '✨ AI 分析简历',
+    analyzingBtn: '✨ AI 分析中…',
+    keywordsTitle: 'AI 提取的特质关键词',
+    resultsDesc: '根据简历分析，为你找到以下社团 ↓',
+    bestMatch: '🏆 最适合你',
+    matchLabel: '匹配度',
+    memberSuffix: ' 人',
+    weeklyHoursPrefix: '每周 ',
+    weeklyHoursSuffix: ' 小时',
+    reasonTpl: (tag: string, name: string) => `你的简历关键词与「${tag}」高度匹配，${name}是很好的选择`,
+    promptTpl: (fileName: string, major: string, grade: string, bio: string) =>
+      `请根据简历文件名"${fileName}"和用户信息（${major} ${grade}学生${bio ? '，简介：' + bio.slice(0, 40) : ''}），提取3-5个最能描述这个人特质的中文关键词，用于匹配大学社团，直接列出关键词即可，用顿号分隔。`,
+    fallbackKeywords: ['团队合作', '创新', '学习', '热情', '表达'],
+  },
+  en: {
+    uploadTitle: 'Upload Resume',
+    uploadDesc: 'AI will extract your key traits and match you with the best clubs',
+    uploadBtn: 'Click to upload resume (PDF)',
+    analyzeBtn: '✨ AI Analyze Resume',
+    analyzingBtn: '✨ Analyzing…',
+    keywordsTitle: 'AI-extracted trait keywords',
+    resultsDesc: 'Based on your resume, here are your top matches ↓',
+    bestMatch: '🏆 Best Match',
+    matchLabel: 'Match',
+    memberSuffix: ' members',
+    weeklyHoursPrefix: '',
+    weeklyHoursSuffix: 'h/week',
+    reasonTpl: (tag: string, name: string) => `Your resume keywords closely match "${tag}" — ${name} is a great fit.`,
+    promptTpl: (fileName: string, major: string, grade: string, bio: string) =>
+      `Based on the resume filename "${fileName}" and user info (${major} ${grade} student${bio ? ', bio: ' + bio.slice(0, 40) : ''}), extract 3-5 short English keywords that best describe this person's traits for matching university clubs. List only the keywords, separated by commas.`,
+    fallbackKeywords: ['Teamwork', 'Innovation', 'Learning', 'Passion', 'Communication'],
+  },
+};
+
 // Simulate keyword → club scoring
 function scoreByKeywords(keywords: string[], club: Club): number {
   const tagMatches = club.tags.filter((t) =>
     keywords.some((kw) => t.includes(kw) || kw.includes(t))
   ).length;
-  const base = Math.round((tagMatches / Math.max(club.tags.length, 1)) * 55 + club.rating * 9);
+  const tagMatchesEn = (club.tagsEn ?? []).filter((t) =>
+    keywords.some((kw) => t.toLowerCase().includes(kw.toLowerCase()) || kw.toLowerCase().includes(t.toLowerCase()))
+  ).length;
+  const base = Math.round((Math.max(tagMatches, tagMatchesEn) / Math.max(club.tags.length, 1)) * 55 + club.rating * 9);
   return Math.min(97, Math.max(42, base));
 }
 
-// Fixed fallback keywords per club profile vibe (used when AI response isn't parseable)
-const FALLBACK_KEYWORDS: Record<string, string[]> = {
-  default: ['团队合作', '创新', '学习', '热情', '表达'],
-};
-
 export default function ResumeMatchPage() {
+  const { language } = useLanguage();
+  const t = language === 'en' ? text.en : text.zh;
+  const isEn = language === 'en';
+
   const [file, setFile]           = useState<File | null>(null);
   const [analyzing, setAnalyzing] = useState(false);
   const [keywords, setKeywords]   = useState<string[]>([]);
@@ -51,27 +97,32 @@ export default function ResumeMatchPage() {
     setAnalyzing(true);
 
     const profile = JSON.parse(localStorage.getItem('studentProfile') || '{}');
-    const prompt  = `请根据简历文件名"${file.name}"和用户信息（${profile.major || '未知专业'} ${profile.grade || '大一'}学生${profile.bio ? '，简介：' + profile.bio.slice(0, 40) : ''}），提取3-5个最能描述这个人特质的中文关键词，用于匹配大学社团，直接列出关键词即可，用顿号分隔。`;
+    const major   = profile.major || (isEn ? 'Unknown major' : '未知专业');
+    const grade   = profile.grade || (isEn ? 'Freshman' : '大一');
+    const bio     = profile.bio || '';
+    const prompt  = t.promptTpl(file.name, major, grade, bio);
 
     let extractedKws: string[] = [];
     try {
       const res  = await fetch('/api/chat', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ message: prompt }) });
       const data = await res.json();
-      // Try to extract keywords from reply
       const raw = (data.reply as string) || '';
-      const parts = raw.split(/[、，,\s]+/).filter((s: string) => s.length >= 2 && s.length <= 8);
-      extractedKws = parts.length >= 2 ? parts.slice(0, 5) : FALLBACK_KEYWORDS.default;
+      const parts = raw.split(/[、，,\s]+/).filter((s: string) => s.length >= 2 && s.length <= 20);
+      extractedKws = parts.length >= 2 ? parts.slice(0, 5) : t.fallbackKeywords;
     } catch {
-      extractedKws = FALLBACK_KEYWORDS.default;
+      extractedKws = t.fallbackKeywords;
     }
 
     setKeywords(extractedKws);
 
-    // Score each club
     const scored: ResumeResult[] = mockClubs.map((club) => {
-      const score = scoreByKeywords(extractedKws, club);
-      const topTag = club.tags.find((t) => extractedKws.some((kw) => t.includes(kw) || kw.includes(t))) || club.tags[0];
-      const reason = `你的简历关键词与「${topTag}」高度匹配，${club.name}是很好的选择`;
+      const score  = scoreByKeywords(extractedKws, club);
+      const tags   = isEn ? (club.tagsEn ?? club.tags) : club.tags;
+      const topTag = tags.find((tag) =>
+        extractedKws.some((kw) => tag.toLowerCase().includes(kw.toLowerCase()) || kw.toLowerCase().includes(tag.toLowerCase()))
+      ) ?? tags[0];
+      const displayName = isEn ? (club.nameEn ?? club.name) : club.name;
+      const reason = t.reasonTpl(topTag, displayName);
       return { club, score, reason };
     }).sort((a, b) => b.score - a.score);
 
@@ -86,8 +137,8 @@ export default function ResumeMatchPage() {
       <main style={{ padding: '20px 16px 40px' }}>
         {/* Upload area */}
         <div style={{ background: '#fff', borderRadius: 16, padding: '18px 16px', marginBottom: 16, boxShadow: '0 1px 4px rgba(83,74,183,0.07)' }}>
-          <h2 style={{ fontSize: 15, fontWeight: 700, color: '#1A1240', marginBottom: 6 }}>上传简历</h2>
-          <p style={{ fontSize: 13, color: '#9B8EC4', marginBottom: 16 }}>AI 将自动提取关键特质，为你匹配最合适的社团</p>
+          <h2 style={{ fontSize: 15, fontWeight: 700, color: '#1A1240', marginBottom: 6 }}>{t.uploadTitle}</h2>
+          <p style={{ fontSize: 13, color: '#9B8EC4', marginBottom: 16 }}>{t.uploadDesc}</p>
 
           <input ref={fileInputRef} type="file" accept=".pdf" style={{ display: 'none' }} onChange={handleFileSelect} />
 
@@ -101,7 +152,7 @@ export default function ResumeMatchPage() {
               }}
             >
               <span style={{ fontSize: 32 }}>📎</span>
-              <span style={{ fontSize: 14, fontWeight: 600, color: '#534AB7' }}>点击上传简历（PDF）</span>
+              <span style={{ fontSize: 14, fontWeight: 600, color: '#534AB7' }}>{t.uploadBtn}</span>
             </button>
           ) : (
             <div>
@@ -124,7 +175,7 @@ export default function ResumeMatchPage() {
                     color: '#fff', fontSize: 15, fontWeight: 700, cursor: 'pointer',
                   }}
                 >
-                  {analyzing ? '✨ AI 分析中…' : '✨ AI 分析简历'}
+                  {analyzing ? t.analyzingBtn : t.analyzeBtn}
                 </button>
               )}
             </div>
@@ -134,7 +185,7 @@ export default function ResumeMatchPage() {
         {/* Keywords */}
         {keywords.length > 0 && (
           <div style={{ background: '#fff', borderRadius: 16, padding: '16px', marginBottom: 16, boxShadow: '0 1px 4px rgba(83,74,183,0.07)' }}>
-            <p style={{ fontSize: 13, fontWeight: 700, color: '#9B8EC4', marginBottom: 10 }}>AI 提取的特质关键词</p>
+            <p style={{ fontSize: 13, fontWeight: 700, color: '#9B8EC4', marginBottom: 10 }}>{t.keywordsTitle}</p>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
               {keywords.map((kw, i) => (
                 <span key={i} style={{ padding: '5px 12px', borderRadius: 99, background: '#EDE9FF', color: '#534AB7', fontSize: 13, fontWeight: 600 }}>
@@ -149,12 +200,15 @@ export default function ResumeMatchPage() {
         {results && (
           <div>
             <p style={{ fontSize: 14, color: '#6B5FA6', marginBottom: 14 }}>
-              根据简历分析，为你找到以下社团 ↓
+              {t.resultsDesc}
             </p>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
               {results.map((r, i) => {
                 const isTop = i === 0;
                 const cat   = categoryColorStyle[r.club.category] ?? { background: '#F3F4F6', color: '#374151' };
+                const displayName = isEn ? (r.club.nameEn ?? r.club.name) : r.club.name;
+                const displayCategory = isEn ? (categoryEn[r.club.category] ?? r.club.category) : r.club.category;
+                const displayTags = isEn ? (r.club.tagsEn ?? r.club.tags) : r.club.tags;
                 return (
                   <Link key={r.club.id} href={`/student/club/${r.club.id}`} style={{ textDecoration: 'none' }}>
                     <div style={{
@@ -165,21 +219,21 @@ export default function ResumeMatchPage() {
                     }}>
                       {isTop && (
                         <div style={{ position: 'absolute', top: 0, right: 0, background: 'linear-gradient(135deg,#F59E0B,#D97706)', color: '#fff', fontSize: 11, fontWeight: 700, padding: '4px 12px', borderBottomLeftRadius: 12 }}>
-                          🏆 最适合你
+                          {t.bestMatch}
                         </div>
                       )}
 
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 10 }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 8, paddingRight: isTop ? 80 : 0 }}>
                           <span style={{ fontSize: 13, color: '#9B8EC4' }}>#{i + 1}</span>
-                          <span style={{ fontSize: 17, fontWeight: 700, color: '#1A1240' }}>{r.club.name}</span>
-                          <span style={{ fontSize: 11, padding: '2px 8px', borderRadius: 99, fontWeight: 600, ...cat }}>{r.club.category}</span>
+                          <span style={{ fontSize: 17, fontWeight: 700, color: '#1A1240' }}>{displayName}</span>
+                          <span style={{ fontSize: 11, padding: '2px 8px', borderRadius: 99, fontWeight: 600, ...cat }}>{displayCategory}</span>
                         </div>
                         <div style={{ textAlign: 'right', flexShrink: 0 }}>
                           <div style={{ fontSize: 26, fontWeight: 800, color: '#534AB7', lineHeight: 1 }}>
                             {r.score}<span style={{ fontSize: 13, fontWeight: 500, color: '#9B8EC4' }}>%</span>
                           </div>
-                          <div style={{ fontSize: 10, color: '#9B8EC4' }}>匹配度</div>
+                          <div style={{ fontSize: 10, color: '#9B8EC4' }}>{t.matchLabel}</div>
                         </div>
                       </div>
 
@@ -188,14 +242,14 @@ export default function ResumeMatchPage() {
                       </div>
 
                       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 10 }}>
-                        {r.club.tags.slice(0, 4).map((t, j) => (
-                          <span key={j} style={{ fontSize: 11, padding: '3px 9px', borderRadius: 99, background: '#EDE9FF', color: '#534AB7' }}>{t}</span>
+                        {displayTags.slice(0, 4).map((tag, j) => (
+                          <span key={j} style={{ fontSize: 11, padding: '3px 9px', borderRadius: 99, background: '#EDE9FF', color: '#534AB7' }}>{tag}</span>
                         ))}
                       </div>
 
                       <div style={{ display: 'flex', gap: 14, fontSize: 12, color: '#9B8EC4' }}>
-                        <span>👥 {r.club.memberCount} 人</span>
-                        <span>⏱️ 每周 {r.club.weeklyHours} 小时</span>
+                        <span>👥 {r.club.memberCount}{t.memberSuffix}</span>
+                        <span>⏱️ {t.weeklyHoursPrefix}{r.club.weeklyHours}{t.weeklyHoursSuffix}</span>
                         <span>⭐ {r.club.rating}</span>
                       </div>
                     </div>
