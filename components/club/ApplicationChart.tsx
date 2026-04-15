@@ -10,9 +10,10 @@ interface Props {
   data: DataPoint[];
   selectedDay: string | null;
   onDayClick: (data: { activeLabel?: string } | null) => void;
+  language?: string;
 }
 
-export default function ApplicationChart({ data, selectedDay, onDayClick }: Props) {
+export default function ApplicationChart({ data, selectedDay, onDayClick, language = 'zh' }: Props) {
   return (
     <ResponsiveContainer width="100%" height={150}>
       <LineChart
@@ -25,7 +26,11 @@ export default function ApplicationChart({ data, selectedDay, onDayClick }: Prop
         <YAxis hide />
         <Tooltip
           contentStyle={{ fontSize: 12, borderRadius: 8, border: 'none', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}
-          formatter={(value: unknown) => [`${value} 人`, '申请数'] as [string, string]}
+          formatter={(value: unknown) =>
+            language === 'en'
+              ? [`${value}`, 'Applications'] as [string, string]
+              : [`${value} 人`, '申请数'] as [string, string]
+          }
         />
         <Line
           type="monotone"

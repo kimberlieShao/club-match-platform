@@ -10,6 +10,7 @@ export interface Review {
   id: string;
   anonymous: boolean;
   content: string;
+  contentEn?: string;
   ratings: ReviewRatings;
   createdAt: string;
   enrollYear?: number;
@@ -54,11 +55,13 @@ export interface Club {
   description: string;
   descriptionEn?: string;
   tags: string[];
+  tagsEn?: string[];
   memberCount: number;
   weeklyHours: number;
   rating: number;
   coverImage?: string;
   president?: string;
+  presidentEn?: string;
   presidentContact?: string;
   activities: Activity[];
   reviews: Review[];
@@ -90,4 +93,5 @@ export interface MatchResult {
   club: Club;
   score: number;
   reason: string;
+  reasonEn: string;
 }

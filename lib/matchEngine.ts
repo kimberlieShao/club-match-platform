@@ -6,7 +6,7 @@ function clamp(v: number): number {
   return Math.min(5, Math.max(1, v));
 }
 
-export function calculateMatch(answers: QuizAnswers, club: Club): { score: number; reason: string } {
+export function calculateMatch(answers: QuizAnswers, club: Club): { score: number; reason: string; reasonEn: string } {
   const p = club.profile;
 
   // 1. Interest dimensions (perform/sport/creative/academic) — each max 20 pts
@@ -45,20 +45,32 @@ export function calculateMatch(answers: QuizAnswers, club: Club): { score: numbe
   const topDim = topDimEntry[0];
   const topDimScore = topDimEntry[1];
 
+  const clubNameEn = club.nameEn ?? club.name;
+
   let reason: string;
+  let reasonEn: string;
+
   if (socialScore > topDimScore) {
-    reason = `你热爱社交，${club.name}活跃的氛围很适合你`;
+    reason   = `你热爱社交，${club.name}活跃的氛围很适合你`;
+    reasonEn = `You love being social — ${clubNameEn}'s vibrant community is a great fit.`;
   } else {
-    const reasonMap: Record<string, string> = {
-      perform: `你热爱表达和舞台，${club.name}正需要像你这样的人`,
+    const reasonMapZh: Record<string, string> = {
+      perform:  `你热爱表达和舞台，${club.name}正需要像你这样的人`,
       creative: `你享受动手创造，${club.name}的氛围和你高度契合`,
-      sport: `你喜欢运动和竞技，${club.name}会让你找到同频的队友`,
+      sport:    `你喜欢运动和竞技，${club.name}会让你找到同频的队友`,
       academic: `你追求深度思考，${club.name}是你施展的好地方`,
     };
-    reason = reasonMap[topDim];
+    const reasonMapEn: Record<string, string> = {
+      perform:  `You love performing and the spotlight — ${clubNameEn} needs someone just like you.`,
+      creative: `You enjoy making things — ${clubNameEn}'s hands-on culture is exactly your vibe.`,
+      sport:    `You thrive on competition — ${clubNameEn} is where you'll find your teammates.`,
+      academic: `You love deep thinking — ${clubNameEn} is the perfect place to grow.`,
+    };
+    reason   = reasonMapZh[topDim];
+    reasonEn = reasonMapEn[topDim];
   }
 
-  return { score, reason };
+  return { score, reason, reasonEn };
 }
 
 export function matchClubs(answers: QuizAnswers, clubs: Club[]): MatchResult[] {

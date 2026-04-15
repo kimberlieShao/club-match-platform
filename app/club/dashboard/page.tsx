@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
 import { mockClubs } from '@/lib/mockData';
@@ -8,8 +8,8 @@ import Navbar from '@/components/shared/Navbar';
 import { useLanguage } from '@/lib/i18n';
 
 const ApplicationChart = dynamic(() => import('@/components/club/ApplicationChart'), { ssr: false });
-const InterestChart = dynamic(() => import('@/components/club/InterestChart'), { ssr: false });
-const ReadingChart = dynamic(() => import('@/components/club/ReadingChart'), { ssr: false });
+const InterestChart    = dynamic(() => import('@/components/club/InterestChart'),    { ssr: false });
+const ReadingChart     = dynamic(() => import('@/components/club/ReadingChart'),     { ssr: false });
 
 const text = {
   zh: {
@@ -23,8 +23,11 @@ const text = {
     appList: '申请人列表', viewAll: '查看全部', applicants: '位申请者 →',
     interestThisWeek: '近7天感兴趣人数', profileViews: '点击详情页的用户数',
     wechatReach: '公众号文章阅读量', last5articles: '近5篇文章数据',
-    pending: '待审核', viewDetail: '查看详情 →',
+    pending: '待审核', accepted2: '已通过', declined: '已拒绝',
+    viewDetail: '查看详情 →',
     showAll: '显示全部', noApps: '该天暂无申请记录',
+    dayApplicants: (day: string, count: number) => `${day} 的申请（${count} 人）`,
+    allRecent: (label: string) => `${label}（近7天）`,
   },
   en: {
     title: 'Club Dashboard',
@@ -37,52 +40,89 @@ const text = {
     appList: 'Applicants', viewAll: 'View all', applicants: 'applicants →',
     interestThisWeek: 'Profile Views This Week', profileViews: 'Students who viewed your page',
     wechatReach: 'Social Media Reach', last5articles: 'Last 5 posts',
-    pending: 'Pending', viewDetail: 'View Profile →',
+    pending: 'Pending', accepted2: 'Accepted', declined: 'Declined',
+    viewDetail: 'View Profile →',
     showAll: 'Show all', noApps: 'No applications for this day',
+    dayApplicants: (day: string, count: number) => `${day} Applicants (${count})`,
+    allRecent: (label: string) => `${label} (Last 7 Days)`,
   },
 };
 
-const club = mockClubs[0];
+// ── Day data ──────────────────────────────────────────────────────────────────
 
-const applyData = [
-  { day: '周一', count: 2 },
-  { day: '周二', count: 2 },
-  { day: '周三', count: 2 },
-  { day: '周四', count: 3 },
-  { day: '周五', count: 2 },
-  { day: '周六', count: 3 },
-  { day: '周日', count: 2 },
+const DAY_KEYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'] as const;
+type DayKey = typeof DAY_KEYS[number];
+
+const DAY_ZH: Record<DayKey, string> = {
+  Mon: '周一', Tue: '周二', Wed: '周三', Thu: '周四', Fri: '周五', Sat: '周六', Sun: '周日',
+};
+const APPLY_COUNTS: Record<DayKey, number> = {
+  Mon: 2, Tue: 2, Wed: 2, Thu: 3, Fri: 2, Sat: 3, Sun: 2,
+};
+
+// ── Applicant mock data ───────────────────────────────────────────────────────
+
+const DASH_APPLICANTS_RAW = [
+  { id: '1',  nameZh: '刘雨欣', nameEn: 'Emma Liu',    tagsZh: ['表演', '舞台'],  tagsEn: ['Performance', 'Stage'],      status: '待审核', dayKey: 'Sat' as DayKey },
+  { id: '2',  nameZh: '陈思远', nameEn: 'Alex Chen',   tagsZh: ['创作', '表演'],  tagsEn: ['Creation', 'Performance'],   status: '待审核', dayKey: 'Sat' as DayKey },
+  { id: 'a1', nameZh: '沈晨曦', nameEn: 'Sophie Shen', tagsZh: ['剧本', '舞台'],  tagsEn: ['Script', 'Stage'],           status: '待审核', dayKey: 'Sat' as DayKey },
+  { id: '3',  nameZh: '林晓雨', nameEn: 'Lily Lin',    tagsZh: ['剧本', '创意'],  tagsEn: ['Script', 'Creativity'],      status: '待审核', dayKey: 'Thu' as DayKey },
+  { id: 'a2', nameZh: '唐如画', nameEn: 'Tara Tang',   tagsZh: ['表演', '音乐'],  tagsEn: ['Performance', 'Music'],      status: '待审核', dayKey: 'Thu' as DayKey },
+  { id: 'a3', nameZh: '蒋思远', nameEn: 'Jason Jiang', tagsZh: ['创意', '表达'],  tagsEn: ['Creativity', 'Expression'],  status: '已通过', dayKey: 'Thu' as DayKey },
+  { id: '7',  nameZh: '王天明', nameEn: 'Tom Wang',    tagsZh: ['运动', '团队'],  tagsEn: ['Sports', 'Teamwork'],        status: '待审核', dayKey: 'Sun' as DayKey },
+  { id: 'a4', nameZh: '郑美丽', nameEn: 'Mia Zheng',   tagsZh: ['舞台', '创作'],  tagsEn: ['Stage', 'Creation'],         status: '待审核', dayKey: 'Sun' as DayKey },
+  { id: '5',  nameZh: '李梦琪', nameEn: 'Chloe Li',    tagsZh: ['音乐', '表演'],  tagsEn: ['Music', 'Performance'],      status: '待审核', dayKey: 'Fri' as DayKey },
+  { id: 'a5', nameZh: '马云汐', nameEn: 'Yara Ma',     tagsZh: ['表演', '剧本'],  tagsEn: ['Performance', 'Script'],     status: '已通过', dayKey: 'Fri' as DayKey },
+  { id: '6',  nameZh: '张浩然', nameEn: 'Harry Zhang', tagsZh: ['编程', '创作'],  tagsEn: ['Coding', 'Creation'],        status: '已拒绝', dayKey: 'Tue' as DayKey },
+  { id: 'a6', nameZh: '吴明远', nameEn: 'Owen Wu',     tagsZh: ['舞台', '表演'],  tagsEn: ['Stage', 'Performance'],      status: '待审核', dayKey: 'Tue' as DayKey },
+  { id: '4',  nameZh: '赵子轩', nameEn: 'Zack Zhao',   tagsZh: ['表演', '学术'],  tagsEn: ['Performance', 'Academic'],   status: '已通过', dayKey: 'Wed' as DayKey },
+  { id: 'a7', nameZh: '周晓涵', nameEn: 'Hana Zhou',   tagsZh: ['剧本', '创意'],  tagsEn: ['Script', 'Creativity'],      status: '待审核', dayKey: 'Wed' as DayKey },
+  { id: 'a8', nameZh: '韩冰晴', nameEn: 'Clara Han',   tagsZh: ['创作', '表达'],  tagsEn: ['Creation', 'Expression'],    status: '待审核', dayKey: 'Mon' as DayKey },
+  { id: 'a9', nameZh: '孟思琪', nameEn: 'Quinn Meng',  tagsZh: ['表演', '舞台'],  tagsEn: ['Performance', 'Stage'],      status: '待审核', dayKey: 'Mon' as DayKey },
 ];
 
-const DASH_APPLICANTS = [
-  { id: '1',  name: '刘雨欣', tags: ['表演', '舞台'],   status: '待审核', appliedDate: '周六' },
-  { id: '2',  name: '陈思远', tags: ['创作', '表演'],   status: '待审核', appliedDate: '周六' },
-  { id: 'a1', name: '沈晨曦', tags: ['剧本', '舞台'],   status: '待审核', appliedDate: '周六' },
-  { id: '3',  name: '林晓雨', tags: ['剧本', '创意'],   status: '待审核', appliedDate: '周四' },
-  { id: 'a2', name: '唐如画', tags: ['表演', '音乐'],   status: '待审核', appliedDate: '周四' },
-  { id: 'a3', name: '蒋思远', tags: ['创意', '表达'],   status: '已通过', appliedDate: '周四' },
-  { id: '7',  name: '王天明', tags: ['运动', '团队'],   status: '待审核', appliedDate: '周日' },
-  { id: 'a4', name: '郑美丽', tags: ['舞台', '创作'],   status: '待审核', appliedDate: '周日' },
-  { id: '5',  name: '李梦琪', tags: ['音乐', '表演'],   status: '待审核', appliedDate: '周五' },
-  { id: 'a5', name: '马云汐', tags: ['表演', '剧本'],   status: '已通过', appliedDate: '周五' },
-  { id: '6',  name: '张浩然', tags: ['编程', '创作'],   status: '已拒绝', appliedDate: '周二' },
-  { id: 'a6', name: '吴明远', tags: ['舞台', '表演'],   status: '待审核', appliedDate: '周二' },
-  { id: '4',  name: '赵子轩', tags: ['表演', '学术'],   status: '已通过', appliedDate: '周三' },
-  { id: 'a7', name: '周晓涵', tags: ['剧本', '创意'],   status: '待审核', appliedDate: '周三' },
-  { id: 'a8', name: '韩冰晴', tags: ['创作', '表达'],   status: '待审核', appliedDate: '周一' },
-  { id: 'a9', name: '孟思琪', tags: ['表演', '舞台'],   status: '待审核', appliedDate: '周一' },
-];
-
-const STATUS_CHIP: Record<string, string> = {
+const STATUS_CHIP_ZH: Record<string, string> = {
   待审核: 'bg-yellow-100 text-yellow-700',
   已通过: 'bg-green-100 text-green-700',
   已拒绝: 'bg-red-100 text-red-700',
 };
 
+const club = mockClubs[0];
+
 export default function DashboardPage() {
   const { language } = useLanguage();
-  const t = language === 'en' ? text.en : text.zh;
+  const t    = language === 'en' ? text.en : text.zh;
+  const isEn = language === 'en';
 
+  // Language-aware day label helper
+  const dayLabel = (key: DayKey) => isEn ? key : DAY_ZH[key];
+
+  // Chart data with language-aware x-axis labels
+  const applyData = useMemo(() =>
+    DAY_KEYS.map((k) => ({ day: dayLabel(k), count: APPLY_COUNTS[k] })),
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  [language]);
+
+  // Applicants with language-aware fields; appliedDate = display label for current language
+  const dashApplicants = useMemo(() =>
+    DASH_APPLICANTS_RAW.map((a) => ({
+      ...a,
+      name:        isEn ? a.nameEn : a.nameZh,
+      tags:        isEn ? a.tagsEn : a.tagsZh,
+      appliedDate: dayLabel(a.dayKey),
+    })),
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  [language]);
+
+  // Status display mapping
+  const statusDisplay = (status: string) => {
+    if (status === '待审核') return t.pending;
+    if (status === '已通过') return t.accepted2;
+    if (status === '已拒绝') return t.declined;
+    return status;
+  };
+
+  // selectedDay stores the current-language display label (e.g. 'Sat' or '周六')
   const [selectedDay, setSelectedDay] = useState<string | null>(null);
 
   const handleChartClick = (data: { activeLabel?: string } | null) => {
@@ -91,20 +131,18 @@ export default function DashboardPage() {
   };
 
   const filtered = selectedDay
-    ? DASH_APPLICANTS.filter((a) => a.appliedDate === selectedDay)
-    : DASH_APPLICANTS;
+    ? dashApplicants.filter((a) => a.appliedDate === selectedDay)
+    : dashApplicants;
+
+  const selectedCount = applyData.find((d) => d.day === selectedDay)?.count ?? filtered.length;
 
   const listTitle = selectedDay
-    ? language === 'en'
-      ? `${selectedDay} Applicants (${applyData.find((d) => d.day === selectedDay)?.count ?? filtered.length})`
-      : `${selectedDay} 的申请（${applyData.find((d) => d.day === selectedDay)?.count ?? filtered.length} 人）`
-    : language === 'en'
-      ? `${t.appList} (Last 7 Days)`
-      : `${t.appList}（近7天）`;
+    ? t.dayApplicants(selectedDay, selectedCount)
+    : t.allRecent(t.appList);
 
   const summaryStats = [
     { label: t.totalApps,  value: '42',    icon: '📨', sub: t.thisSemester },
-    { label: t.acceptRate, value: '67%',   icon: '✅', sub: language === 'en' ? `28 ${t.accepted}` : `28${t.accepted}` },
+    { label: t.acceptRate, value: '67%',   icon: '✅', sub: isEn ? `28 ${t.accepted}` : `28${t.accepted}` },
     { label: t.avgMatch,   value: '78',    icon: '🎯', sub: t.fullScore },
     { label: t.pageViews,  value: '1,234', icon: '👁️', sub: t.last30days },
   ];
@@ -116,9 +154,13 @@ export default function DashboardPage() {
       <main className="flex-1 px-4 py-6">
         <div className="flex items-center justify-between mb-5">
           <div>
-            <p className="text-[#6B5FA6] text-sm">{t.welcome}{club.name}</p>
+            <p className="text-[#6B5FA6] text-sm">
+              {t.welcome}{isEn ? (club.nameEn ?? club.name) : club.name}
+            </p>
             {club.president && (
-              <p className="text-xs text-[#9B8EC4] mt-0.5">{t.president}{club.president}</p>
+              <p className="text-xs text-[#9B8EC4] mt-0.5">
+                {t.president}{isEn ? (club.presidentEn ?? club.president) : club.president}
+              </p>
             )}
           </div>
           <Link href="/club/profile">
@@ -142,7 +184,7 @@ export default function DashboardPage() {
           ))}
         </div>
 
-        {/* Merged: chart + applicant list */}
+        {/* Chart + applicant list */}
         <div className="bg-white rounded-2xl p-5 shadow-sm mb-4">
           <div className="flex items-center justify-between mb-0.5">
             <h2 className="font-semibold text-[#1A1240]">{t.appsThisWeek}</h2>
@@ -156,14 +198,13 @@ export default function DashboardPage() {
             data={applyData}
             selectedDay={selectedDay}
             onDayClick={handleChartClick}
+            language={language}
           />
 
           <div className="border-t border-[#F0EEFF] my-4" />
 
           <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-2 flex-wrap">
-              <h3 className="font-semibold text-[#1A1240] text-sm">{listTitle}</h3>
-            </div>
+            <h3 className="font-semibold text-[#1A1240] text-sm">{listTitle}</h3>
             {selectedDay && (
               <button
                 onClick={() => setSelectedDay(null)}
@@ -186,8 +227,8 @@ export default function DashboardPage() {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-1.5">
                       <p className="font-medium text-[#1A1240] text-sm">{app.name}</p>
-                      <span className={`text-xs px-1.5 py-0.5 rounded-full shrink-0 ${STATUS_CHIP[app.status]}`}>
-                        {app.status === '待审核' ? t.pending : app.status}
+                      <span className={`text-xs px-1.5 py-0.5 rounded-full shrink-0 ${STATUS_CHIP_ZH[app.status]}`}>
+                        {statusDisplay(app.status)}
                       </span>
                     </div>
                     <div className="flex gap-1 mt-0.5">
