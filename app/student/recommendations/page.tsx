@@ -104,7 +104,7 @@ export default function RecommendationsPage() {
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', paddingRight: isTop ? 80 : 0 }}>
                       <span style={{ fontSize: 14, color: '#9B8EC4' }}>#{index + 1}</span>
                       <h2 style={{ fontSize: 18, fontWeight: 700, color: '#1A1240', margin: 0 }}>
-                        {result.club.name}
+                        {language === 'en' ? (result.club.nameEn ?? result.club.name) : result.club.name}
                       </h2>
                       <span
                         style={{
